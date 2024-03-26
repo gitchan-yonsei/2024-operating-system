@@ -543,11 +543,11 @@ int state(enum procstate state) {
         case EMBRYO:
             return 1;
         case SLEEPING:
-            return 4;
-        case RUNNABLE:
-            return 1;
-        case RUNNING:
             return 2;
+        case RUNNABLE:
+            return 3;
+        case RUNNING:
+            return 4;
         case ZOMBIE:
             return 5;
         default:
@@ -564,7 +564,9 @@ cps()
     cprintf("name \t pid \t state \t nice \t ticks \t ticks: 137\n");
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
         int stateNumber = state(p->state);
-        cprintf("%s \t %d \t %d \t %d \n ", p->name, p->pid, stateNumber, p->priority);
+        if (stateNumber == 2 || stateNumber == 3 || stateNumber == 5) {
+            cprintf("%s \t %d \t %d \t %d \n ", p->name, p->pid, stateNumber, p->priority);
+        }
     }
     return 0;
 }
