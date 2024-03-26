@@ -536,8 +536,6 @@ procdump(void)
   }
 }
 
-int state(procstate state);
-
 int
 cps()
 {
@@ -545,35 +543,34 @@ cps()
 
     cprintf("name \t pid \t state \t nice \t ticks \t ticks: 137\n");
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-
         if(p->state == SLEEPING)
-            cprintf("%s \t %d \t 4 \t %d \n ", p -> name, p -> pid, p -> priority);
+            cprintf("%s \t %d \t %d \t %d \n ", p->name, p->pid, 4, p->priority);
         else if(p->state == RUNNING)
-            cprintf("%s \t %d \t 2 \t %d \n ", p -> name, p -> pid, p -> priority);
+            cprintf("%s \t %d \t %d \t %d \n ", p->name, p->pid, 2, p->priority);
         else if(p->state == RUNNABLE)
-            cprintf("%s \t %d \t 1 \t %d \n ", p -> name, p -> pid, p -> priority);
+            cprintf("%s \t %d \t %d \t %d \n ", p->name, p->pid, 1, p->priority);
     }
     return 0;
 }
 
-int state(procstate state){
-    if (state == UNUSED) {
-        return 0;
-    }
-    if (state == EMBRYO) {
-        return 1;
-    }
-    if (state == SLEEPING) {
-        return 2;
-    }
-    if (state == RUNNABLE) {
-        return 3;
-    }
-    if (state == RUNNING) {
-        return 4;
-    }
-    return 5;
-}
+//int state(procstate state){
+//    if (state == UNUSED) {
+//        return 0;
+//    }
+//    if (state == EMBRYO) {
+//        return 1;
+//    }
+//    if (state == SLEEPING) {
+//        return 2;
+//    }
+//    if (state == RUNNABLE) {
+//        return 3;
+//    }
+//    if (state == RUNNING) {
+//        return 4;
+//    }
+//    return 5;
+//}
 
 int
 chpr(int pid, int priority)
