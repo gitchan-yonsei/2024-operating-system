@@ -38,10 +38,10 @@ struct cpu*
 mycpu(void)
 {
   int apicid, i;
-  
+
   if(readeflags()&FL_IF)
     panic("mycpu called with interrupts enabled\n");
-  
+
   apicid = lapicid();
   // APIC IDs are not guaranteed to be contiguous. Maybe we should have
   // a reverse map, or reserve a register to store &cpus[i].
@@ -88,7 +88,7 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
-  p->priority = 2;
+  p->priority=2; // The initial process has the nice value of 2
 
   release(&ptable.lock);
 
@@ -125,7 +125,7 @@ userinit(void)
   extern char _binary_initcode_start[], _binary_initcode_size[];
 
   p = allocproc();
-  
+
   initproc = p;
   if((p->pgdir = setupkvm()) == 0)
     panic("userinit: out of memory?");
@@ -203,6 +203,9 @@ fork(void)
   np->parent = curproc;
   *np->tf = *curproc->tf;
 
+  // the child process inherits the priority value of the parent process
+  np->priority = curproc->priority;
+
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
 
@@ -278,7 +281,7 @@ wait(void)
   struct proc *p;
   int havekids, pid;
   struct proc *curproc = myproc();
-  
+
   acquire(&ptable.lock);
   for(;;){
     // Scan through table looking for exited children.
@@ -328,7 +331,7 @@ scheduler(void)
   struct proc *p;
   struct cpu *c = mycpu();
   c->proc = 0;
-  
+
   for(;;){
     // Enable interrupts on this processor.
     sti();
@@ -421,7 +424,7 @@ void
 sleep(void *chan, struct spinlock *lk)
 {
   struct proc *p = myproc();
-  
+
   if(p == 0)
     panic("sleep");
 
@@ -536,27 +539,40 @@ procdump(void)
   }
 }
 
+int state(enum procstate state) {
+    switch (state) {
+        case UNUSED:
+            return 0;
+        case EMBRYO:
+            return 1;
+        case SLEEPING:
+            return 2;
+        case RUNNABLE:
+            return 3;
+        case RUNNING:
+            return 4;
+        case ZOMBIE:
+            return 5;
+        default:
+            return -1;
+    }
+}
+
 int
 cps()
 {
     struct proc *p;
-//Enables interrupts on this processor.
-    sti();
 
-//Loop over process table looking for process with pid.
-    acquire(&ptable.lock);
-    cprintf("name \t pid \t state \t priority \n");
+    cprintf("name \t pid \t state \t nice \t ticks \t ticks: %d\n", ticks);
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-        if(p->state == SLEEPING)
-            cprintf("%s \t %d \t SLEEPING \t %d \n ", p->name,p->pid,p->priority);
-        else if(p->state == RUNNING)
-            cprintf("%s \t %d \t RUNNING \t %d \n ", p->name,p->pid,p->priority);
-        else if(p->state == RUNNABLE)
-            cprintf("%s \t %d \t RUNNABLE \t %d \n ", p->name,p->pid,p->priority);
+        int stateNumber = state(p->state);
+        if (stateNumber == 2 || stateNumber == 3 || stateNumber == 4 || stateNumber == 5) {
+            cprintf("%s \t %d \t %d \t %d \t %d \n ", p->name, p->pid, stateNumber, p->priority, p->ticks);
+        }
     }
-    release(&ptable.lock);
-    return 22;
+    return 0;
 }
+
 
 int
 chpr(int pid, int priority)
