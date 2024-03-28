@@ -565,7 +565,7 @@ cps()
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
         int stateNumber = state(p->state);
         if (stateNumber == 2 || stateNumber == 3 || stateNumber == 5) {
-            cprintf("%s \t %d \t %d \t %d \n ", p->name, p->pid, stateNumber, p->priority);
+            cprintf("%s \t %d \t %d \t %d \t %d \n ", p->name, p->pid, stateNumber, p->priority, 0);
         }
     }
     return 0;
