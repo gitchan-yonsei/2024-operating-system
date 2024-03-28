@@ -563,7 +563,7 @@ totalTicks()
 
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
         int stateNumber = state(p->state);
-        if (stateNumber == 2 || stateNumber == 3 || stateNumber == 5) {
+        if (stateNumber == 2 || stateNumber == 3 || stateNumber == 4 || stateNumber == 5) {
             totalTicks += p->ticks;
         }
     }
@@ -579,7 +579,7 @@ cps()
     cprintf("name \t pid \t state \t nice \t ticks \t ticks: %d\n", totalTicks());
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
         int stateNumber = state(p->state);
-        if (stateNumber == 2 || stateNumber == 3 || stateNumber == 5) {
+        if (stateNumber == 2 || stateNumber == 3 || stateNumber == 4 || stateNumber == 5) {
             cprintf("%s \t %d \t %d \t %d \t %d \n ", p->name, p->pid, stateNumber, p->priority, p->ticks);
         }
     }
