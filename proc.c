@@ -561,18 +561,20 @@ cps() {
 int
 chpr(int priority) {
     struct proc *curproc = myproc();
+
     if (curproc == 0) {
         return -1;
     }
 
-    int curpr = curproc->priority;
-    int afterpr = curpr + priority;
+    curproc->priority += priority;
 
-    if (afterpr < -5 || afterpr > 4) {
-        return -1;
+    if (curproc->priority < -5) {
+        curproc->priority = -5;
     }
 
-    curproc->priority = afterpr;
+    if (afterpr > 4) {
+        curproc->priority = 4;
+    }
 
-    return afterpr;
+    return curproc->priority;
 }
