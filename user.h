@@ -26,7 +26,7 @@ int uptime(void);
 int swapread(const char*, int);
 int swapwrite(const char*, int);
 int cps(void);
-int nice(int pid, int priority);
+int priority(int pid, int priority);
 
 // ulib.c
 int stat(const char*, struct stat*);

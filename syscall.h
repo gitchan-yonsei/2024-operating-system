@@ -23,5 +23,5 @@
 #define SYS_swapread	22
 #define SYS_swapwrite	23
 #define SYS_cps	        24
-#define SYS_nice	    25
+#define SYS_sys_priority	    25
 

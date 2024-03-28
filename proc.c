@@ -575,7 +575,7 @@ cps()
 
 
 int
-nice(int pid, int priority)
+priority(int pid, int priority)
 {
     struct proc *p;
     acquire(&ptable.lock);
