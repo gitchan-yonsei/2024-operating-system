@@ -6,7 +6,7 @@
 int
 main(int argc, char *argv[])
 {
-    int priority, pid;
+    int priority;
     if(argc < 3){
         printf(2,"Usage: nice pid priority\n");
         exit();
