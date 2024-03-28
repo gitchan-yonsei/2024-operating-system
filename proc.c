@@ -558,6 +558,7 @@ int state(enum procstate state) {
 int
 totalTicks()
 {
+    struct proc *p;
     int totalTicks = 0;
 
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
