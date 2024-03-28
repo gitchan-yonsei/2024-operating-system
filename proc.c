@@ -131,6 +131,7 @@ userinit(void)
     panic("userinit: out of memory?");
   cprintf("%p %p\n", _binary_initcode_start, _binary_initcode_size);
   inituvm(p->pgdir, _binary_initcode_start, (int)_binary_initcode_size);
+  p->priority=2; // The initial process has the nice value of 2
   p->sz = PGSIZE;
   memset(p->tf, 0, sizeof(*p->tf));
   p->tf->cs = (SEG_UCODE << 3) | DPL_USER;
