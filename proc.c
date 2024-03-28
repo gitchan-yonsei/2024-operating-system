@@ -575,16 +575,14 @@ cps()
 
 
 int
-chpr(int pid, int priority)
+chpr(int priority)
 {
-    struct proc *p;
-    acquire(&ptable.lock);
-    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-        if(p->pid == pid){
-            p->priority = priority;
-            break;
-        }
+    struct proc *curproc = myproc();
+    if (curproc == 0) {
+        return -1;
     }
-    release(&ptable.lock);
+
+    curproc->priority += priority;
+
     return pid;
 }
