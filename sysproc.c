@@ -97,7 +97,7 @@ sys_cps(void)
 }
 
 int
-sys_chpr(void)
+sys_nice(void)
 {
     int pid, pr;
     if(argint(0, &pid) < 0)
