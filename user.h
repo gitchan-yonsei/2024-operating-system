@@ -26,6 +26,7 @@ int uptime(void);
 int swapread(const char*, int);
 int swapwrite(const char*, int);
 int cps(void);
+int yield(void);
 int chpr(int priority);
 
 // ulib.c

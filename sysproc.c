@@ -97,6 +97,13 @@ sys_cps(void)
 }
 
 int
+sys_yield(void)
+{
+    yield();
+    return 0;
+}
+
+int
 sys_chpr(void)
 {
     int pid, pr;
