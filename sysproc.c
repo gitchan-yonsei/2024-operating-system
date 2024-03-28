@@ -99,7 +99,7 @@ sys_cps(void)
 int
 sys_yield(void)
 {
-    yield()
+    yield();
     return 0;
 }
 
