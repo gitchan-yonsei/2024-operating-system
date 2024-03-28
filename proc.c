@@ -576,7 +576,7 @@ cps()
 {
     struct proc *p;
 
-    cprintf("name \t pid \t state \t nice \t ticks \t ticks: %d\n", totalTicks());
+    cprintf("name \t pid \t state \t nice \t ticks \t ticks: %d\n", ticks);
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
         int stateNumber = state(p->state);
         if (stateNumber == 2 || stateNumber == 3 || stateNumber == 4 || stateNumber == 5) {
