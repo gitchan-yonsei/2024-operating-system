@@ -584,5 +584,5 @@ chpr(int priority)
 
     curproc->priority += priority;
 
-    return pid;
+    return curproc->priority;
 }
