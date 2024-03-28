@@ -91,9 +91,9 @@ sys_uptime(void)
 }
 
 int
-sys_cps(void)
+sys_ps(void)
 {
-    return cps();
+    return ps();
 }
 
 int
@@ -104,7 +104,7 @@ sys_yield(void)
 }
 
 int
-sys_chpr(void)
+sys_nice(void)
 {
-    return chpr(pr);
+    return nice(pr);
 }
