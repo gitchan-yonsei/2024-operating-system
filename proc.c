@@ -572,7 +572,7 @@ chpr(int priority) {
         curproc->priority = -5;
     }
 
-    if (afterpr > 4) {
+    if (curproc->priority > 4) {
         curproc->priority = 4;
     }
 
