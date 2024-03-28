@@ -106,5 +106,9 @@ sys_yield(void)
 int
 sys_nice(void)
 {
-    return nice(pr);
+    int value;
+    if(argint(0, &value) < 0)
+        return -1;
+
+    return nice(value);
 }
