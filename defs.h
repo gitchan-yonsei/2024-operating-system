@@ -120,8 +120,8 @@ void            userinit(void);
 int             wait(void);
 void            wakeup(void*);
 void            yield(void);
-int             cps(void);
-int             chpr(int priority);
+int             ps(void);
+int             nice(int value);
 
 
 // swtch.S

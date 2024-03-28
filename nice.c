@@ -5,7 +5,7 @@
 
 int
 main(int argc, char *argv[]) {
-    int priority = atoi(argv[2]);
-    chpr(priority);
+    int value = atoi(argv[2]);
+    nice(value);
     exit();
 }

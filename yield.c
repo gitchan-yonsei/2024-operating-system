@@ -8,5 +8,3 @@ int main(int argc, char** argv)
     yield();
     exit();
 }
-
-

@@ -544,7 +544,7 @@ int state(enum procstate state) {
 }
 
 int
-cps() {
+ps() {
     struct proc *p;
 
     cprintf("name \t pid \t state \t nice \t ticks \t ticks: %d\n", ticks);
@@ -559,7 +559,7 @@ cps() {
 
 
 int
-chpr(int priority) {
+nice(int priority) {
     struct proc *curproc = myproc();
 
     if (curproc == 0) {
