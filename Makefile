@@ -186,6 +186,7 @@ UPROGS=\
 	_ps\
 	_yield\
 	_nice\
+	_yieldtest\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)
