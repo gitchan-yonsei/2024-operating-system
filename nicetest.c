@@ -14,24 +14,17 @@ void work(int nice_val) {
 
 int
 main(void) {
-    printf(1, "Nice test\n");
+    printf(1, "nice test\n");
 
     int pid = fork();
     if (pid == 0) {
-        // 자식 프로세스
-        printf(1, "Child process: Original priority: %d\n", nice(0));
-        printf(1, "Child process: New priority: %d\n", nice(2)); // 우선순위 변경
-        work(nice(0));
-    } else if (pid > 0) {
-        // 부모 프로세스
-        printf(1, "Parent process: Original priority: %d\n", nice(0));
-        printf(1, "Parent process: New priority: %d\n", nice(-2)); // 우선순위 변경
-        work(nice(0));
-        wait(); // 자식 프로세스의 종료를 기다림
-    } else {
-        // fork 실패
-        printf(1, "fork failed\n");
+        nice(2);
+        ps();
         exit();
+    } else {
+        nice(-2);
+        ps();
+        wait();
     }
 
     exit();
