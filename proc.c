@@ -547,6 +547,8 @@ int
 ps() {
     struct proc *p;
 
+    acquire(&ptable.lock);
+
     cprintf("name \t pid \t state \t nice \t ticks \t ticks: %d\n", ticks);
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
         int stateNumber = state(p->state);
@@ -554,6 +556,9 @@ ps() {
             cprintf("%s \t %d \t %d \t %d \t %d \n ", p->name, p->pid, stateNumber, p->priority, p->ticks);
         }
     }
+
+    release(&ptable.lock);
+
     return 0;
 }
 
