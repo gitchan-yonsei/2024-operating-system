@@ -13,7 +13,6 @@ main(void) {
             printf(1, "child\n");
             yield();
         }
-        exit();
     } else {
         wait();
         for (i = 0; i < 10; ++i) {
