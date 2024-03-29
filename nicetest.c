@@ -19,12 +19,14 @@ main(void) {
     int pid = fork();
     if (pid == 0) {
         // 자식 프로세스
-        nice(10); // 자식 프로세스의 우선순위를 낮춤
-        work(10);
+        printf(1, "Child process: Original priority: %d\n", nice(0));
+        printf(1, "Child process: New priority: %d\n", nice(2)); // 우선순위 변경
+        work(nice(0));
     } else if (pid > 0) {
         // 부모 프로세스
-        nice(0); // 부모 프로세스의 우선순위는 그대로 유지
-        work(0);
+        printf(1, "Parent process: Original priority: %d\n", nice(0));
+        printf(1, "Parent process: New priority: %d\n", nice(-2)); // 우선순위 변경
+        work(nice(0));
         wait(); // 자식 프로세스의 종료를 기다림
     } else {
         // fork 실패
