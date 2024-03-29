@@ -20,4 +20,5 @@ main(void) {
         }
     }
     printf(1, "finished!\n");
+    exit();
 }
