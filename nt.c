@@ -10,6 +10,7 @@ main(void) {
     ps();
 
     int pid = fork();
+    ps();
     if (pid == 0) {
         nice(2);
         ps();
