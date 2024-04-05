@@ -103,12 +103,10 @@ sys_yield(void)
     return 0;
 }
 
-int
-sys_nice(void)
+int sys_nice(void)
 {
-    int value;
-    if(argint(0, &value) < 0)
-        return -1;
-
-    return nice(value);
+	int value;
+	if ( argint(0, &value) < 0 )
+		return -1;
+	return nice(value);
 }
