@@ -121,7 +121,7 @@ int             wait(void);
 void            wakeup(void*);
 void            yield(void);
 int             ps(void);
-int             nice(int value);
+int             nice(int);
 
 
 // swtch.S
