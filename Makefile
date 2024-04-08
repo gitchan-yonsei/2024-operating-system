@@ -184,6 +184,10 @@ UPROGS=\
 	_zombie\
 	_swaptest\
 	_ps\
+	_yield\
+	_nice\
+	_yt\
+	_nt\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)

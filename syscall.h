@@ -22,3 +22,7 @@
 #define SYS_close  21
 #define SYS_swapread	22
 #define SYS_swapwrite	23
+#define SYS_ps	   24
+#define SYS_yield  25
+#define SYS_nice   26
+
