@@ -188,6 +188,8 @@ UPROGS=\
 	_nice\
 	_yt\
 	_nt\
+	_prio_test\
+	_mlfq_test\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)
