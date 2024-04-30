@@ -551,3 +551,63 @@ procdump(void)
     cprintf("\n");
   }
 }
+
+int state(enum procstate state) {
+    switch (state) {
+        case UNUSED:
+            return 0;
+        case EMBRYO:
+            return 1;
+        case SLEEPING:
+            return 2;
+        case RUNNABLE:
+            return 3;
+        case RUNNING:
+            return 4;
+        case ZOMBIE:
+            return 5;
+        default:
+            return -1;
+    }
+}
+
+int
+ps() {
+    struct proc *p;
+
+    acquire(&ptable.lock);
+
+    cprintf("name \t pid \t state \t nice \t ticks \t ticks: %d\n", ticks);
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+        int stateNumber = state(p->state);
+        if (stateNumber == 2 || stateNumber == 3 || stateNumber == 4 || stateNumber == 5) {
+            cprintf("%s \t %d \t %d \t %d \t %d \n ", p->name, p->pid, stateNumber, p->priority, p->ticks);
+        }
+    }
+
+    release(&ptable.lock);
+
+    return 0;
+}
+
+
+int
+nice(int priority) {
+    struct proc *curproc = myproc();
+
+    if (curproc == 0) {
+        return -1;
+    }
+
+    curproc->priority += priority;
+
+    if (curproc->priority < -5) {
+        curproc->priority = -5;
+    }
+
+    if (curproc->priority > 4) {
+        curproc->priority = 4;
+    }
+
+    return curproc->priority;
+}
