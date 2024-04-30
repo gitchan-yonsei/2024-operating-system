@@ -320,34 +320,53 @@ wait(void) {
 //  - eventually that process transfers control
 //      via swtch back to the scheduler.
 void
-scheduler(void) {
+scheduler(void)
+{
     struct proc *p;
+    struct proc *highPriorityP = 0;
     struct cpu *c = mycpu();
     c->proc = 0;
 
-    for (;;) {
+    for(;;){
         // Enable interrupts on this processor.
         sti();
 
         // Loop over process table looking for process to run.
         acquire(&ptable.lock);
-        for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
-            if (p->state != RUNNABLE)
+        for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+            if(p->state != RUNNABLE)
                 continue;
 
             // Switch to chosen process.  It is the process's job
             // to release ptable.lock and then reacquire it
             // before jumping back to us.
-            c->proc = p;
-            switchuvm(p);
-            p->state = RUNNING;
 
-            swtch(&(c->scheduler), p->context);
-            switchkvm();
+            if (highPriorityP == 0
+                || p->nice < highPriorityP->nice
+                || (p->nice == highPriorityP->nice && p->pid < highPriorityP->pid)) {
+                highPriorityP = p;
+            }
+
+            if (highPriorityP && highPriorityP->state == RUNNABLE) {
+                c->proc = highPriorityP;
+                switchuvm(highPriorityP);
+                highPriorityP->state = RUNNING;
+
+                swtch(&(c->scheduler), highPriorityP->context);
+                switchkvm();
+            }
+
+//      c->proc = p;
+//      switchuvm(p);
+//      p->state = RUNNING;
+
+//      swtch(&(c->scheduler), p->context);
+//      switchkvm();
 
             // Process is done running for now.
             // It should have changed its p->state before coming back.
             c->proc = 0;
+            highPriorityP = 0;
         }
         release(&ptable.lock);
 
