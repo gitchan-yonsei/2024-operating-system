@@ -342,8 +342,8 @@ scheduler(void)
             // before jumping back to us.
 
             if (highPriorityP == 0
-                || p->nice < highPriorityP->nice
-                || (p->nice == highPriorityP->nice && p->pid < highPriorityP->pid)) {
+                || p->priority < highPriorityP->priority
+                || (p->priority == highPriorityP->priority && p->pid < highPriorityP->pid)) {
                 highPriorityP = p;
             }
 
