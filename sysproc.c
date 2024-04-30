@@ -96,19 +96,16 @@ sys_ps(void)
     return ps();
 }
 
-int
-sys_yield(void)
+int sys_yield(void)
 {
-    yield();
-    return 0;
+	yield();
+	return 0;
 }
 
-int
-sys_nice(void)
+int sys_nice(void)
 {
-    int value;
-    if(argint(0, &value) < 0)
-        return -1;
-
-    return nice(value);
+	int value;
+	if ( argint(0, &value) < 0 )
+		return -1;
+	return nice(value);
 }
