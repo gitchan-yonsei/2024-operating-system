@@ -89,6 +89,10 @@ found:
   p->state = EMBRYO;
   p->pid = nextpid++;
 
+  // MLFQ의 조건에 맞게 초기화
+  p->priority = 0;
+  p->ticks = 0;
+
   release(&ptable.lock);
 
   // Allocate kernel stack.
