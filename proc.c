@@ -354,7 +354,6 @@ scheduler(void)
       c->proc = 0;
     }
     release(&ptable.lock);
-
   }
 }
 
@@ -511,6 +510,8 @@ int nice(int value)
 		new_nice = -5;
 	p->nice = new_nice;
 	release(&ptable.lock);
+
+    yield();
 
 	return p->nice;
 }
