@@ -589,25 +589,3 @@ ps() {
 
     return 0;
 }
-
-
-int
-nice(int priority) {
-    struct proc *curproc = myproc();
-
-    if (curproc == 0) {
-        return -1;
-    }
-
-    curproc->priority += priority;
-
-    if (curproc->priority < -5) {
-        curproc->priority = -5;
-    }
-
-    if (curproc->priority > 4) {
-        curproc->priority = 4;
-    }
-
-    return curproc->priority;
-}
