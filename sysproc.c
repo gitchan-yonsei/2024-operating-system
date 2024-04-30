@@ -90,6 +90,12 @@ sys_uptime(void)
   return xticks;
 }
 
+int
+sys_ps(void)
+{
+    return ps();
+}
+
 int sys_yield(void)
 {
 	yield();
@@ -102,10 +108,4 @@ int sys_nice(void)
 	if ( argint(0, &value) < 0 )
 		return -1;
 	return nice(value);
-}
-
-int
-sys_ps(void)
-{
-    return ps();
 }
