@@ -377,12 +377,15 @@ scheduler(void) {
                 if (p->state == RUNNABLE) {
                     p->state = RUNNING;
                     c->proc = p;
+
+                    release(&ptable.lock);
                     swtch(&(c->scheduler), p->context);
                     switchkvm();
-                }
 
-                if (p->state == RUNNABLE) {
-                    queue[p->nice][count[p->nice]++] = p;
+                    acquire(&ptable.lock);
+                    if (p->state == RUNNABLE) {
+                        queue[p->priority][count[p->priority]++] = p;
+                    }
                 }
             }
         }
