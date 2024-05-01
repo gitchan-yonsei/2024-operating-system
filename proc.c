@@ -89,6 +89,10 @@ found:
   p->state = EMBRYO;
   p->pid = nextpid++;
 
+  // priority 및 ticks 초기화
+  p->nice = 0;
+  p->ticks = 0;
+
   release(&ptable.lock);
 
   // Allocate kernel stack.
