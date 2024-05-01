@@ -7,6 +7,11 @@
 #include "proc.h"
 #include "spinlock.h"
 
+#define HIGH 0
+#define MEDIUM 1
+#define LOW 2
+#define TIME_SLICE 4
+
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
@@ -183,6 +188,20 @@ growproc(int n)
   return 0;
 }
 
+
+void timer_tick(void) {
+    struct proc *p = myproc();
+
+    if(p && p->state == RUNNING && p->priority < LOW) {
+        p->ticks++;
+        if(p->ticks >= TIME_SLICE) {
+            p->priority++;
+            p->ticks = 0;
+            queue[p->priority][count[p->priority]++] = p;
+        }
+    }
+}
+
 // Create a new process copying p as the parent.
 // Sets up stack to return as if from system call.
 // Caller must set state of returned proc to RUNNABLE.
@@ -225,6 +244,9 @@ fork(void)
   acquire(&ptable.lock);
 
   np->state = RUNNABLE;
+
+  np->nice = HIGH;
+  queue[HIGH][count[HIGH]++] = np;
 
   release(&ptable.lock);
 
