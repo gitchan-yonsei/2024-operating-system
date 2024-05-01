@@ -511,6 +511,8 @@ int nice(int value)
 	p->nice = new_nice;
 	release(&ptable.lock);
 
+    yield();
+
 	return p->nice;
 }
 
