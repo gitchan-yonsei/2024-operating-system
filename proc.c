@@ -353,7 +353,6 @@ scheduler(void) {
             c->proc = 0;
         }
         release(&ptable.lock);
-
     }
 }
 
@@ -474,10 +473,10 @@ wakeup(void *chan)
   wakeup1(chan);
   release(&ptable.lock);
 
-  struct proc *curproc = myproc();
-  if (curproc->state == RUNNING) {
-      yield();
-  }
+//  struct proc *curproc = myproc();
+//  if (curproc->state == RUNNING) {
+//      yield();
+//  }
 }
 
 // Kill the process with the given pid.
