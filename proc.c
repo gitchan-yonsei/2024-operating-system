@@ -473,6 +473,8 @@ wakeup(void *chan)
   acquire(&ptable.lock);
   wakeup1(chan);
   release(&ptable.lock);
+
+  yield();
 }
 
 // Kill the process with the given pid.
