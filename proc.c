@@ -384,7 +384,7 @@ scheduler(void) {
 
                     acquire(&ptable.lock);
                     if (p->state == RUNNABLE) {
-                        queue[p->priority][count[p->priority]++] = p;
+                        queue[p->nice][count[p->nice]++] = p;
                     }
                 }
             }
