@@ -372,17 +372,20 @@ scheduler(void) {
                     queue[i][j] = queue[i][j + 1];
                 }
 
-                queue[i][count[i] - 1] = p;
+                count[i]--;
 
                 if (p->state == RUNNABLE) {
                     p->state = RUNNING;
+                    c->proc = p;
                     swtch(&(c->scheduler), p->context);
                     switchkvm();
                 }
+
+                if (p->state == RUNNABLE) {
+                    queue[p->nice][count[p->nice]++] = p;
+                }
             }
         }
-
-        c->proc = 0;
         release(&ptable.lock);
     }
 }
