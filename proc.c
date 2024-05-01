@@ -353,6 +353,8 @@ wait(void)
 //      via swtch back to the scheduler.
 void
 scheduler(void) {
+    cprintf("Scheduler started\n");
+
     struct proc *p;
     struct cpu *c = mycpu();
     c->proc = 0;
@@ -375,6 +377,8 @@ scheduler(void) {
                 count[i]--;
 
                 if (p->state == RUNNABLE) {
+                    cprintf("Switching to process %d\n", p->pid);
+
                     p->state = RUNNING;
                     c->proc = p;
 
