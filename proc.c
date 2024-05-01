@@ -342,9 +342,16 @@ scheduler(void) {
         // Loop over process table looking for process to run.
         acquire(&ptable.lock);
 
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < 3; i++) {
             if (count[i] > 0) {
                 p = queue[i][0];
+
+//                for (int j = 0; j < count[i] - 1; j++) {
+//                    queue[i][j] = queue[i][j + 1];
+//                }
+//
+//                queue[i][count[i] - 1] = p;
+
                 if (p->state == RUNNABLE) {
                     p->state = RUNNING;
                     swtch(&(c->scheduler), p->context);
