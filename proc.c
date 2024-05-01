@@ -12,6 +12,9 @@ struct {
   struct proc proc[NPROC];
 } ptable;
 
+static struct proc *queue[3][NPROC]; // 우선순위 큐들
+static int count[3] = {0, 0, 0};  // 각 우선순위 큐의 프로세스 수
+
 static struct proc *initproc;
 
 int nextpid = 1;
@@ -338,24 +341,18 @@ scheduler(void) {
 
         // Loop over process table looking for process to run.
         acquire(&ptable.lock);
-        for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
-            if (p->state != RUNNABLE)
-                continue;
 
-            // Switch to chosen process.  It is the process's job
-            // to release ptable.lock and then reacquire it
-            // before jumping back to us.
-            c->proc = p;
-            switchuvm(p);
-            p->state = RUNNING;
-
-            swtch(&(c->scheduler), p->context);
-            switchkvm();
-
-            // Process is done running for now.
-            // It should have changed its p->state before coming back.
-            c->proc = 0;
+        for (int i = 0; i < 3; ++i) {
+            if (count[i] > 0) {
+                p = queue[i][0];
+                if (p->state == RUNNABLE) {
+                    p->state = RUNNING;
+                    swtch(&(c->scheduler), p->context);
+                    switchkvm();
+                }
+            }
         }
+
         release(&ptable.lock);
     }
 }
