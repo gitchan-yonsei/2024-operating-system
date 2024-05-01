@@ -192,12 +192,12 @@ growproc(int n)
 void timer_tick(void) {
     struct proc *p = myproc();
 
-    if(p && p->state == RUNNING && p->priority < LOW) {
+    if(p && p->state == RUNNING && p->nice < LOW) {
         p->ticks++;
         if(p->ticks >= TIME_SLICE) {
-            p->priority++;
+            p->nice++;
             p->ticks = 0;
-            queue[p->priority][count[p->priority]++] = p;
+            queue[p->nice][count[p->nice]++] = p;
         }
     }
 }
