@@ -474,7 +474,10 @@ wakeup(void *chan)
   wakeup1(chan);
   release(&ptable.lock);
 
-  yield();
+  struct proc *curproc = myproc();
+  if (curproc->state == RUNNING) {
+      yield();
+  }
 }
 
 // Kill the process with the given pid.
