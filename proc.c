@@ -368,11 +368,11 @@ scheduler(void) {
             if (count[i] > 0) {
                 p = queue[i][0];
 
-//                for (int j = 0; j < count[i] - 1; j++) {
-//                    queue[i][j] = queue[i][j + 1];
-//                }
-//
-//                queue[i][count[i] - 1] = p;
+                for (int j = 0; j < count[i] - 1; j++) {
+                    queue[i][j] = queue[i][j + 1];
+                }
+
+                queue[i][count[i] - 1] = p;
 
                 if (p->state == RUNNABLE) {
                     p->state = RUNNING;
