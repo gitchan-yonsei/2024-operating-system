@@ -479,11 +479,11 @@ wakeup1(void *chan)
 void
 wakeup(void *chan)
 {
-//   int hold_ptable = holding(&ptable.lock);
-//
-//    if (!hold_ptable) {
-//        acquire(&ptable.lock);
-//    }
+   int hold_ptable = holding(&ptable.lock);
+
+    if (!hold_ptable) {
+        acquire(&ptable.lock);
+    }
 
     acquire(&ptable.lock);
   wakeup1(chan);
