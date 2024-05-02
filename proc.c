@@ -399,7 +399,7 @@ scheduler(void) {
 
         if (!found) {
             release(&ptable.lock);
-            asm volatile("hit");
+            asm volatile("hlt");
         } else {
             release(&ptable.lock);
         }
