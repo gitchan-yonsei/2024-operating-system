@@ -416,7 +416,11 @@ void
 yield(void)
 {
   acquire(&ptable.lock);  //DOC: yieldlock
-  myproc()->state = RUNNABLE;
+  struct proc *p = myproc();
+    if (p->state == RUNNING) {
+        p->state = RUNNABLE;
+        enqueue(p);
+    }
   sched();
   release(&ptable.lock);
 }
