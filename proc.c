@@ -339,10 +339,10 @@ wait(void)
 //      via swtch back to the scheduler.
 void
 scheduler(void) {
-//    struct proc *p;
-    struct proc *highP = 0;
+    struct proc *p;
     struct cpu *c = mycpu();
     c->proc = 0;
+    int found;
 
     for (;;) {
         // Enable interrupts on this processor.
@@ -350,40 +350,41 @@ scheduler(void) {
 
         // Loop over process table looking for process to run.
         acquire(&ptable.lock);
+        found = 0;
 
         for (int priority = HIGH; priority <= LOW; priority++) {
             if (count[priority] > 0) {
-                highP = queue[priority][0];
+                for (int i = 0; i < count[priority]; i++) {
+                    p = queue[priority][i];
+
+                    if (p->state == RUNNABLE) {
+                        c->proc = p;
+                        switchuvm(p);
+                        p->state = RUNNING;
+                        release(&ptable.lock);
+
+                        swtch(&(c->scheduler), p->context);
+                        switchkvm();
+
+                        if (p->state == RUNNABLE) {
+                            if (p->ticks >= TICKS) {
+                                p->priority = p->priority < LOW ? p->priority + 1 : LOW;
+                                p->ticks = 0;
+                            }
+
+                            queue[p->priority][count[p->priority]++] = p;
+                        }
+
+                        c->proc = 0;
+                        found = 1;
+                        break;
+                    }
+                }
+                if (found) {
+                    break;
+                }
             }
         }
-
-//        for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
-//            if (p->state != RUNNABLE)
-//                continue;
-//
-//            if (highP == 0
-//                || p->nice < highP->nice
-//                || (p->nice == highP->nice && p->pid < highP->pid)) {
-//                highP = p;
-//            }
-//
-//            if (highP && highP->state == RUNNABLE) {
-//                c->proc = highP;
-//                switchuvm(highP);
-//                highP->state = RUNNING;
-//
-//                // Switch to chosen process.  It is the process's job
-//                // to release ptable.lock and then reacquire it
-//                // before jumping back to us.
-                swtch(&(c->scheduler), highP->context);
-                switchkvm();
-//            }
-//
-//            // Process is done running for now.
-//            // It should have changed its p->state before coming back.
-            c->proc = 0;
-            highP = 0;
-//        }
         release(&ptable.lock);
     }
 }
