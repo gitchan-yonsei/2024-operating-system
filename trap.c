@@ -47,6 +47,7 @@ trap(struct trapframe *tf)
   }
 
   if(tf->trapno == T_IRQ0 + IRQ_TIMER) {
+      struct proc *cp = myproc();
       if (cp->proc && cp->proc->state == RUNNING) {
           cp->proc->ticks++;
           if (cp->proc->ticks >= 4) {  // Time slice complete
