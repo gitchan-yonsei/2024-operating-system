@@ -244,6 +244,14 @@ fork(void)
 
   np->state = RUNNABLE;
 
+  enqueue(np);
+
+    if (myproc()->state == RUNNING) {
+        myproc()->state = RUNNABLE;
+    }
+
+    sched();
+
   release(&ptable.lock);
 
   return pid;
