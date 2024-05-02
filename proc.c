@@ -377,7 +377,7 @@ void scheduler(void) {
                 switchkvm();
 
                 if (p->state == RUNNABLE) {
-                    if (p->timeslice_used >= mlfqs[cpuid()].timeslice[priority]) {
+                    if (p->ticks >= mlfqs[cpuid()].timeslice[priority]) {
                         demote_proc(p);
                     }
                     enqueue(p->priority, p);
