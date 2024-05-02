@@ -224,7 +224,6 @@ fork(void)
   np->state = RUNNABLE;
 
   np->priority = HIGH;
-  queue[HIGH][count[HIGH]++] = np;
 
   release(&ptable.lock);
 
