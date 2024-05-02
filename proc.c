@@ -358,6 +358,7 @@ scheduler(void) {
     struct proc *p;
     struct cpu *c = mycpu();
     c->proc = 0;
+    int found;
 
     for (;;) {
         // Enable interrupts on this processor.
@@ -365,6 +366,7 @@ scheduler(void) {
 
         // Loop over process table looking for process to run.
         acquire(&ptable.lock);
+        found = 0;
 
         for (int i = 0; i < 3; i++) {
             if (count[i] > 0) {
@@ -390,10 +392,18 @@ scheduler(void) {
                     if (p->state == RUNNABLE) {
                         queue[p->nice][count[p->nice]++] = p;
                     }
+                    found = 1;
                 }
             }
         }
-        release(&ptable.lock);
+
+        if (!found) {
+            release(&ptable.lock);
+            asm volatile("hit");
+        } else {
+            release(&ptable.lock);
+        }
+
     }
 }
 
