@@ -62,14 +62,13 @@ trap(struct trapframe *tf)
   switch(tf->trapno){
   case T_IRQ0 + IRQ_TIMER:
     if(cpuid() == 0){
-        struct proc *cp = myproc();
+      struct proc *cp = myproc();
       acquire(&tickslock);
       cp->ticks++;
 //	  if ( myproc() != 0 )
 //	    myproc()->ticks++;
 //      wakeup(&ticks);
       release(&tickslock);
-      struct proc *cp = myproc();
       if (cp && cp->state == RUNNING) {
           cp->ticks++;
           if (cp->ticks >= 4) {  // Time slice complete
