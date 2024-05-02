@@ -355,7 +355,7 @@ scheduler(void) {
                 continue;
 
             int highest_priority = find_highest_priority();
-            cprintf("%d", highest_priority);
+            cprintf("priority: %d\n", highest_priority);
 
             if (highP == 0
                 || p->nice < highP->nice
