@@ -7,12 +7,36 @@
 #include "proc.h"
 #include "spinlock.h"
 
+#define HIGH 0
+#define MEDIUM 1
+#define LOW 2
+#define NUM_QUEUES 3
+
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
 } ptable;
 
 static struct proc *initproc;
+
+struct proc *queue[NUM_QUEUES][NPROC];  // Process queues for each priority level
+int queue_count[NUM_QUEUES] = {0};      // Number of processes in each queue
+
+void enqueue(struct proc *p) {
+    int priority = p->priority;
+    queue[priority][queue_count[priority]++] = p;
+}
+
+struct proc* dequeue(int priority) {
+    if (queue_count[priority] == 0) return 0;
+    struct proc* p = queue[priority][0];
+    for(int i = 0; i < queue_count[priority] - 1; i++) {
+        queue[priority][i] = queue[priority][i + 1];
+    }
+    queue_count[priority]--;
+    return p;
+}
+
 
 int nextpid = 1;
 extern void forkret(void);
@@ -323,53 +347,38 @@ wait(void)
 //  - swtch to start running that process
 //  - eventually that process transfers control
 //      via swtch back to the scheduler.
-void
-scheduler(void) {
-    struct proc *p;
-    struct proc *highP = 0;
+void scheduler(void) {
     struct cpu *c = mycpu();
     c->proc = 0;
 
-    for (;;) {
-        // Enable interrupts on this processor.
-        sti();
+    for(;;) {
+        sti();  // Enable interrupts
 
-        // Loop over process table looking for process to run.
         acquire(&ptable.lock);
-        for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
-            if (p->state != RUNNABLE)
-                continue;
+        for(int priority = HIGH; priority <= LOW; priority++) {
+            while(queue_count[priority] > 0) {
+                struct proc *p = dequeue(priority);
+                if(p != 0 && p->state == RUNNABLE) {
+                    c->proc = p;
+                    switchuvm(p);
+                    p->state = RUNNING;
 
-            if (highP == 0
-                || p->nice < highP->nice
-                || (p->nice == highP->nice && p->pid < highP->pid)) {
-                highP = p;
-            }
+                    swtch(&(c->scheduler), p->context);
+                    switchkvm();
 
-            if (highP && highP->state == RUNNABLE) {
-                c->proc = highP;
-                switchuvm(highP);
-                highP->state = RUNNING;
-
-                // Switch to chosen process.  It is the process's job
-                // to release ptable.lock and then reacquire it
-                // before jumping back to us.
-                swtch(&(c->scheduler), highP->context);
-                switchkvm();
-
-                if (highP->ticks >= 4) {
-                    if (highP->priority < 2) {
-                        highP->priority++;
+                    c->proc = 0;
+                    if (p->state == RUNNABLE) {
+                        if (p->ticks >= 4) {
+                            p->ticks = 0;
+                            if (p->priority < LOW) {
+                                p->priority++;
+                            }
+                        }
+                        enqueue(p);
                     }
-                    highP->ticks = 0;
                 }
             }
         }
-
-        // Process is done running for now.
-        // It should have changed its p->state before coming back.
-        c->proc = 0;
-        highP = 0;
         release(&ptable.lock);
     }
 }
