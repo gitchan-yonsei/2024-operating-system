@@ -62,14 +62,11 @@ trap(struct trapframe *tf)
                     myproc()->priority++;
                 }
                 myproc()->ticks = 0;
+                yield();
             }
         }
     }
     lapiceoi();
-
-          if (myproc() && myproc()->state == RUNNING && tf->trapno == T_IRQ0 + IRQ_TIMER) {
-              yield();
-          }
 
     break;
   case T_IRQ0 + IRQ_IDE:
