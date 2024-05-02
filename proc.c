@@ -485,7 +485,6 @@ wakeup(void *chan)
         acquire(&ptable.lock);
     }
 
-    acquire(&ptable.lock);
   wakeup1(chan);
   release(&ptable.lock);
 
