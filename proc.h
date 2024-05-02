@@ -51,7 +51,21 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
+  int priority;
 };
+
+struct queue {
+    struct proc* proc[NPROC];  // array of pointers to processes
+    int head;  // index of the queue head
+    int tail;  // index of the queue tail
+};
+
+struct mlfq {
+    struct queue queues[NQUEUE];  // arrays for three priority queues
+    int timeslice[NQUEUE];  // time slices for each priority
+};
+
+extern struct mlfq mlfqs[NCPU];  // MLFQ per CPU
 
 // Process memory is laid out contiguously, low addresses first:
 //   text
