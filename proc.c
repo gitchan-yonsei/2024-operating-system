@@ -358,7 +358,7 @@ scheduler(void) {
                 switchkvm();
 
                 if (highP->ticks >= 4) {
-                    if (highP->priority < LOW) {
+                    if (highP->priority < 2) {
                         highP->priority++;
                     }
                     highP->ticks = 0;
