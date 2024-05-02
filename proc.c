@@ -298,8 +298,11 @@ exit(void)
   }
 
   // Jump into the scheduler, never to return.
+  acquire(&ptable.lock);
   curproc->state = ZOMBIE;
+  wakeup1(curproc->parent);
   sched();
+  release(&ptable.lock);
   panic("zombie exit");
 }
 
