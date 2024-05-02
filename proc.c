@@ -7,6 +7,11 @@
 #include "proc.h"
 #include "spinlock.h"
 
+#define HIGH 0
+#define MEDIUM 1
+#define LOW 2
+#define TICKS 4
+
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
@@ -314,6 +319,16 @@ wait(void)
   }
 }
 
+int find_highest_priority(void) {
+    int priority = LOW;
+    for (struct proc *p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+        if (p->state == RUNNABLE && p->priority <= priority) {
+            highest = p->priority;
+        }
+    }
+    return priority;
+}
+
 //PAGEBREAK: 42
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
@@ -338,6 +353,9 @@ scheduler(void) {
         for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
             if (p->state != RUNNABLE)
                 continue;
+
+            int highest_priority = find_highest_priority();
+            cprintf("%d", highest_priority);
 
             if (highP == 0
                 || p->nice < highP->nice
