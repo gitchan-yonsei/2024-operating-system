@@ -7,18 +7,10 @@
 #include "proc.h"
 #include "spinlock.h"
 
-#define HIGH 0
-#define MEDIUM 1
-#define LOW 2
-#define TICKS 4
-
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
 } ptable;
-
-static struct proc *queue[3][NPROC]; // 우선순위 큐들
-static int count[3] = {0, 0, 0};  // 각 우선순위 큐의 프로세스 수
 
 static struct proc *initproc;
 
@@ -337,7 +329,8 @@ wait(void)
 //  - swtch to start running that process
 //  - eventually that process transfers control
 //      via swtch back to the scheduler.
-scheduler(void) {
+scheduler(void)
+{
     struct proc *p;
     struct proc *highP = 0;
     struct cpu *c = mycpu();

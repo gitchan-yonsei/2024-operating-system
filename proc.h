@@ -1,3 +1,8 @@
+#define HIGH 0
+#define MEDIUM 1
+#define LOW 2
+#define TICKS 4
+
 // Per-CPU state
 struct cpu {
   uchar apicid;                // Local APIC ID
