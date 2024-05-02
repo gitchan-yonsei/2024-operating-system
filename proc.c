@@ -367,6 +367,12 @@ void scheduler(void) {
     for(;;) {
         sti();
 
+        pushcli();
+        c = mycpu();
+        popcli();
+
+        c->proc = 0;
+
         for (int priority = 0; priority < NQUEUE; priority++) {
             while ((p = dequeue(priority)) != 0) {
                 c->proc = p;
