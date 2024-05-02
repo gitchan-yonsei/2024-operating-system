@@ -66,7 +66,10 @@ void demote_proc(struct proc *p) {
 // Must be called with interrupts disabled
 int
 cpuid() {
-  return mycpu()-cpus;
+    pushcli();
+    int id = mycpu() - cpus;
+    popcli();
+    return id;
 }
 
 // Must be called with interrupts disabled to avoid the caller being
