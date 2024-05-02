@@ -328,6 +328,7 @@ wait(void)
 //  - swtch to start running that process
 //  - eventually that process transfers control
 //      via swtch back to the scheduler.
+int
 scheduler(void)
 {
     struct proc *p;
@@ -368,6 +369,7 @@ scheduler(void)
             c->proc = 0;
             highP = 0;
         }
+
         release(&ptable.lock);
     }
 }
