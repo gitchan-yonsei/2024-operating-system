@@ -359,47 +359,33 @@ wait(void)
 //  - swtch to start running that process
 //  - eventually that process transfers control
 //      via swtch back to the scheduler.
-void
-scheduler(void) {
+void scheduler(void) {
     struct proc *p;
-    struct proc *highP = 0;
     struct cpu *c = mycpu();
     c->proc = 0;
 
-    for (;;) {
-        // Enable interrupts on this processor.
+    for(;;) {
         sti();
 
-        // Loop over process table looking for process to run.
-        acquire(&ptable.lock);
-        for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
-            if (p->state != RUNNABLE)
-                continue;
+        for (int priority = 0; priority < NQUEUE; priority++) {
+            while ((p = dequeue(priority)) != 0) {
+                c->proc = p;
+                switchuvm(p);
+                p->state = RUNNING;
 
-            if (highP == 0
-                || p->nice < highP->nice
-                || (p->nice == highP->nice && p->pid < highP->pid)) {
-                highP = p;
-            }
-
-            if (highP && highP->state == RUNNABLE) {
-                c->proc = highP;
-                switchuvm(highP);
-                highP->state = RUNNING;
-
-                // Switch to chosen process.  It is the process's job
-                // to release ptable.lock and then reacquire it
-                // before jumping back to us.
-                swtch(&(c->scheduler), highP->context);
+                swtch(&(c->scheduler), p->context);
                 switchkvm();
-            }
 
-            // Process is done running for now.
-            // It should have changed its p->state before coming back.
-            c->proc = 0;
-            highP = 0;
+                if (p->state == RUNNABLE) {
+                    if (p->timeslice_used >= mlfqs[cpuid()].timeslice[priority]) {
+                        demote_proc(p);
+                    }
+                    enqueue(p->priority, p);
+                }
+
+                c->proc = 0;
+            }
         }
-        release(&ptable.lock);
     }
 }
 
