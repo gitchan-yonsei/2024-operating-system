@@ -367,13 +367,7 @@ void scheduler(void) {
                     switchkvm();
 
                     c->proc = 0;
-                    if (p->state == RUNNABLE) {
-                        if (p->ticks >= 4) {
-                            p->ticks = 0;
-                            if (p->priority < LOW) {
-                                p->priority++;
-                            }
-                        }
+                    if (p->state == RUNNABLE || p->state == SLEEPING) {
                         enqueue(p);
                     }
                 }

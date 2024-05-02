@@ -56,9 +56,14 @@ trap(struct trapframe *tf)
       release(&tickslock);
     }
 
-    if (myproc() && myproc()->ticks >= TICKS_MAX) {
+    if(myproc() && myproc()->ticks >= 4) {
+        myproc()->ticks = 0;
+        if (myproc()->priority < 2) {
+            myproc()->priority++;
+        }
         yield();
     }
+
     lapiceoi();
 
     break;
