@@ -48,12 +48,12 @@ trap(struct trapframe *tf)
 
   if(tf->trapno == T_IRQ0 + IRQ_TIMER) {
       struct proc *cp = myproc();
-      if (cp->proc && cp->proc->state == RUNNING) {
-          cp->proc->ticks++;
-          if (cp->proc->ticks >= 4) {  // Time slice complete
-              if (cp->proc->priority < 2)
-                  cp->proc->priority++;
-              cp->proc->ticks = 0;
+      if (cp && cp->state == RUNNING) {
+          cp->ticks++;
+          if (cp->ticks >= 4) {  // Time slice complete
+              if (cp->priority < 2)
+                  cp->priority++;
+              cp->ticks = 0;
               yield();
           }
       }
@@ -63,17 +63,18 @@ trap(struct trapframe *tf)
   case T_IRQ0 + IRQ_TIMER:
     if(cpuid() == 0){
       acquire(&tickslock);
-      ticks++;
+      cp->ticks++;
 //	  if ( myproc() != 0 )
 //	    myproc()->ticks++;
 //      wakeup(&ticks);
       release(&tickslock);
-      if (cp->proc && cp->proc->state == RUNNING) {
-          cp->proc->ticks++;
-          if (cp->proc->ticks >= 4) {  // Time slice complete
-              if (cp->proc->priority < 2)
-                  cp->proc->priority++;
-              cp->proc->ticks = 0;
+      struct proc *cp = myproc();
+      if (cp && cp->state == RUNNING) {
+          cp->ticks++;
+          if (cp->ticks >= 4) {  // Time slice complete
+              if (cp->priority < 2)
+                  cp->priority++;
+              cp->ticks = 0;
               yield();
           }
       }
