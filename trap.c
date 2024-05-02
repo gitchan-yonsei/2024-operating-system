@@ -56,7 +56,7 @@ trap(struct trapframe *tf)
       release(&tickslock);
     }
 
-    if (myproc()->ticks >= TICKS_MAX) {
+    if (myproc() && myproc()->ticks >= TICKS_MAX) {
         yield();
     }
     lapiceoi();
