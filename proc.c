@@ -7,6 +7,11 @@
 #include "proc.h"
 #include "spinlock.h"
 
+#define HIGH 0
+#define MEDIUM 1
+#define LOW 2
+#define TICKS 4
+
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
