@@ -356,13 +356,20 @@ scheduler(void) {
                 // before jumping back to us.
                 swtch(&(c->scheduler), highP->context);
                 switchkvm();
-            }
 
-            // Process is done running for now.
-            // It should have changed its p->state before coming back.
-            c->proc = 0;
-            highP = 0;
+                if (highP->ticks >= 4) {
+                    if (highP->priority < LOW) {
+                        highP->priority++;
+                    }
+                    highP->ticks = 0;
+                }
+            }
         }
+
+        // Process is done running for now.
+        // It should have changed its p->state before coming back.
+        c->proc = 0;
+        highP = 0;
         release(&ptable.lock);
     }
 }
