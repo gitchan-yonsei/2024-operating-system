@@ -58,7 +58,7 @@ trap(struct trapframe *tf)
         if (myproc() && myproc()->state == RUNNING) {
             myproc()->ticks++;
             if (myproc()->ticks >= TICKS_MAX) {
-                if (myproc()->priority < LOW) {
+                if (myproc()->priority < 2) {
                     myproc()->priority++;
                 }
                 myproc()->ticks = 0;
