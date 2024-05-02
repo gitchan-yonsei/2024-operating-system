@@ -363,19 +363,21 @@ void scheduler(void) {
 
         acquire(&ptable.lock);
         for(int priority = HIGH; priority <= LOW; priority++) {
-            while(queue_count[priority] > 0) {
-                struct proc *p = dequeue(priority);
-                if(p != 0 && p->state == RUNNABLE) {
-                    c->proc = p;
-                    switchuvm(p);
-                    p->state = RUNNING;
+            if (queue_count[priority] > 0) {
+                for (int i = 0; i < queue_count[priority]; ++i) {
+                    struct proc *p = dequeue(priority);
+                    if (p != 0 && p->state == RUNNABLE) {
+                        c->proc = p;
+                        switchuvm(p);
+                        p->state = RUNNING;
 
-                    swtch(&(c->scheduler), p->context);
-                    switchkvm();
+                        swtch(&(c->scheduler), p->context);
+                        switchkvm();
 
-                    c->proc = 0;
-                    if (p->state == RUNNABLE || p->state == SLEEPING) {
-                        enqueue(p);
+                        c->proc = 0;
+                        if (p->state == RUNNABLE || p->state == SLEEPING) {
+                            enqueue(p);
+                        }
                     }
                 }
             }
