@@ -46,15 +46,36 @@ trap(struct trapframe *tf)
     return;
   }
 
+  if(tf->trapno == T_IRQ0 + IRQ_TIMER) {
+      if (cp->proc && cp->proc->state == RUNNING) {
+          cp->proc->ticks++;
+          if (cp->proc->ticks >= 4) {  // Time slice complete
+              if (cp->proc->priority < 2)
+                  cp->proc->priority++;
+              cp->proc->ticks = 0;
+              yield();
+          }
+      }
+  }
+
   switch(tf->trapno){
   case T_IRQ0 + IRQ_TIMER:
     if(cpuid() == 0){
       acquire(&tickslock);
       ticks++;
-	  if ( myproc() != 0 )
-	    myproc()->ticks++;
-      wakeup(&ticks);
+//	  if ( myproc() != 0 )
+//	    myproc()->ticks++;
+//      wakeup(&ticks);
       release(&tickslock);
+      if (cp->proc && cp->proc->state == RUNNING) {
+          cp->proc->ticks++;
+          if (cp->proc->ticks >= 4) {  // Time slice complete
+              if (cp->proc->priority < 2)
+                  cp->proc->priority++;
+              cp->proc->ticks = 0;
+              yield();
+          }
+      }
     }
     lapiceoi();
     break;
