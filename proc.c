@@ -481,12 +481,14 @@ wakeup(void *chan)
 {
   acquire(&ptable.lock);
   wakeup1(chan);
+  struct proc *curproc = myproc();
+  if (curproc != 0) {
+      if (curproc->state == RUNNING) {
+          curproc->state = RUNNABLE;
+      }
+      sched();
+  }
   release(&ptable.lock);
-
-//  struct proc *curproc = myproc();
-//  if (curproc->state == RUNNING) {
-//      yield();
-//  }
 }
 
 // Kill the process with the given pid.
