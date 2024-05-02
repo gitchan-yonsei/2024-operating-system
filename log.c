@@ -158,7 +158,7 @@ end_op(void)
     // begin_op() may be waiting for log space,
     // and decrementing log.outstanding has decreased
     // the amount of reserved space.
-    wakeup(&log);
+    wakeup(&log, &log.lock);
   }
   release(&log.lock);
 
@@ -168,7 +168,7 @@ end_op(void)
     commit();
     acquire(&log.lock);
     log.committing = 0;
-    wakeup(&log);
+    wakeup(&log, &log.lock);
     release(&log.lock);
   }
 }

@@ -492,6 +492,7 @@ wakeup(void *chan, struct spinlock *lk)
       sched();
   }
   release(&ptable.lock);
+  acquire(lk);
 }
 
 // Kill the process with the given pid.
