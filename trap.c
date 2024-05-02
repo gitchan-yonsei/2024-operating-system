@@ -58,7 +58,7 @@ trap(struct trapframe *tf)
 
           if (myproc() && myproc()->state == RUNNING) {
               myproc()->ticks++;
-              if (myproc()->ticks >= 4) {
+              if (myproc()->ticks >= TICKS_MAX) {
                   myproc()->ticks = 0;
                   if (myproc()->priority < 2) {
                       myproc()->priority++;
@@ -68,7 +68,6 @@ trap(struct trapframe *tf)
           }
 
     lapiceoi();
-
     break;
   case T_IRQ0 + IRQ_IDE:
     ideintr();

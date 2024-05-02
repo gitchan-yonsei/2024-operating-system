@@ -112,7 +112,7 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
-  p->priority = 0;
+  p->priority = HIGH;
 
   release(&ptable.lock);
 
@@ -298,11 +298,7 @@ exit(void)
   }
 
   // Jump into the scheduler, never to return.
-  acquire(&ptable.lock);
   curproc->state = ZOMBIE;
-  wakeup1(curproc->parent);
-  sched();
-  release(&ptable.lock);
   panic("zombie exit");
 }
 
