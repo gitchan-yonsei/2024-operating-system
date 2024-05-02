@@ -323,7 +323,7 @@ int find_highest_priority(void) {
     int priority = LOW;
     for (struct proc *p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
         if (p->state == RUNNABLE && p->priority <= priority) {
-            highest = p->priority;
+            priority = p->priority;
         }
     }
     return priority;
