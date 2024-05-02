@@ -479,14 +479,20 @@ wakeup1(void *chan)
 void
 wakeup(void *chan)
 {
-  acquire(&ptable.lock);
+//   int hold_ptable = holding(&ptable.lock);
+//
+//    if (!hold_ptable) {
+//        acquire(&ptable.lock);
+//    }
+
+    acquire(&ptable.lock);
   wakeup1(chan);
   release(&ptable.lock);
 
-//  struct proc *curproc = myproc();
-//  if (curproc->state == RUNNING) {
-//      yield();
-//  }
+  struct proc *curproc = myproc();
+  if (curproc->state == RUNNING) {
+      yield();
+  }
 }
 
 // Kill the process with the given pid.
