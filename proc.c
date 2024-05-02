@@ -97,6 +97,10 @@ found:
   p->state = EMBRYO;
   p->pid = nextpid++;
 
+  // priority 및 ticks 초기화
+  p->priority = HIGH;
+  p->ticks = 0;
+
   release(&ptable.lock);
 
   // Allocate kernel stack.
@@ -226,6 +230,9 @@ fork(void)
   acquire(&ptable.lock);
 
   np->state = RUNNABLE;
+
+  np->priority = HIGH;
+  queue[HIGH][count[HIGH]++] = np;
 
   release(&ptable.lock);
 
