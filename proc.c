@@ -26,6 +26,43 @@ pinit(void)
   initlock(&ptable.lock, "ptable");
 }
 
+struct mlfq mlfqs[NCPU];
+
+void mlfqinit(void)
+{
+    for (int i = 0; i < NCPU; i++) {
+        for (int j = 0; j < NQUEUE; j++) {
+            mlfqs[i].queues[j].head = mlfqs[i].queues[j].tail = 0;
+        }
+        mlfqs[i].timeslice[0] = 4;  // High priority
+        mlfqs[i].timeslice[1] = 4;  // Medium priority
+        mlfqs[i].timeslice[2] = 4;  // Low priority
+    }
+}
+
+void enqueue(int priority, struct proc *p) {
+    int cpu = cpuid();
+    struct queue *q = &mlfqs[cpu].queues[priority];
+    q->proc[q->tail % NPROC] = p;
+    q->tail++;
+}
+
+struct proc* dequeue(int priority) {
+    int cpu = cpuid();
+    struct queue *q = &mlfqs[cpu].queues[priority];
+    struct proc *p = q->proc[q->head % NPROC];
+    q->head++;
+    return p;
+}
+
+void promote_proc(struct proc *p) {
+    if (p->priority > 0) p->priority--;
+}
+
+void demote_proc(struct proc *p) {
+    if (p->priority < NQUEUE - 1) p->priority++;
+}
+
 // Must be called with interrupts disabled
 int
 cpuid() {
