@@ -17,6 +17,9 @@ struct {
   struct proc proc[NPROC];
 } ptable;
 
+static struct proc *queue[3][NPROC]; // 우선순위 큐들
+static int count[3] = {0, 0, 0};  // 각 우선순위 큐의 프로세스 수
+
 static struct proc *initproc;
 
 int nextpid = 1;
