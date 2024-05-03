@@ -5,7 +5,6 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
-#include "pstat.h"
 
 struct proc* q0[64];
 struct proc* q1[64];
@@ -16,7 +15,6 @@ int c1=-1;
 int c2=-1;
 int c3=-1;
 int clkPerPrio[4] ={1,2,4,8};
-struct pstat pstat_var;
 
 struct
 {
@@ -56,13 +54,6 @@ allocproc (void)
     p->ticks = 0;
     c0++;
     q0[c0] = p;
-    pstat_var.inuse[p->pid] = 1;
-    pstat_var.priority[p->pid] = p->priority;
-    pstat_var.ticks[p->pid][0] = 0;
-    pstat_var.ticks[p->pid][1] = 0;
-    pstat_var.ticks[p->pid][2] = 0;
-    pstat_var.ticks[p->pid][3] = 0;
-    pstat_var.pid[p->pid] = p->pid;
     release(&ptable.lock);
     return 0;
 
@@ -70,17 +61,10 @@ allocproc (void)
     found:
     p->state = EMBRYO;
     p->pid = nextpid++;
-    pstat_var.inuse[p->pid] = 1;
     p->priority = 0;
     p->ticks = 0;
     c0++;
     q0[c0] = p;
-    pstat_var.priority[p->pid] = p->priority;
-    pstat_var.ticks[p->pid][0] = 0;
-    pstat_var.ticks[p->pid][1] = 0;
-    pstat_var.ticks[p->pid][2] = 0;
-    pstat_var.ticks[p->pid][3] = 0;
-    pstat_var.pid[p->pid] = p->pid;
     release (&ptable.lock);
 
     // Allocate kernel stack if possible.
@@ -373,12 +357,10 @@ scheduler (void)
                 p->state = RUNNING;
                 swtch(&cpu->scheduler, proc->context);
                 switchkvm();
-                pstat_var.ticks[p->pid][0]=p->ticks;
                 if(p->ticks ==clkPerPrio[0]){
                     /*copy proc to lower priority queue*/
                     c1++;
                     proc->priority=proc->priority+1;
-                    pstat_var.priority[proc->pid] = proc->priority;
                     q1[c1] = proc;
 
                     /*delete proc from q0*/
@@ -405,13 +387,11 @@ scheduler (void)
                 p->state = RUNNING;
                 swtch(&cpu->scheduler, proc->context);
                 switchkvm();
-                pstat_var.ticks[p->pid][1]=p->ticks;;
                 if(p->ticks ==clkPerPrio[1]){
 
                     /*copy proc to lower priority queue*/
                     c2++;
                     proc->priority=proc->priority+1;
-                    pstat_var.priority[proc->pid] = proc->priority;
                     q2[c2] = proc;
 
                     /*delete proc from q0*/
@@ -438,12 +418,10 @@ scheduler (void)
                 p->state = RUNNING;
                 swtch(&cpu->scheduler, proc->context);
                 switchkvm();
-                pstat_var.ticks[p->pid][2]=p->ticks;;
                 if(p->ticks ==clkPerPrio[2]){
                     /*copy proc to lower priority queue*/
                     c3++;
                     proc->priority=proc->priority+1;
-                    pstat_var.priority[p->pid] = p->priority;
                     q3[c3] = proc;
 
                     /*delete proc from q0*/
@@ -469,8 +447,6 @@ scheduler (void)
                 p->state = RUNNING;
                 swtch(&cpu->scheduler, proc->context);
                 switchkvm();
-                pstat_var.priority[p->pid] = p->priority;
-                pstat_var.ticks[p->pid][3]=p->ticks;;
 
                 /*move process to end of its own queue */
                 q3[i]=NULL;
