@@ -302,7 +302,7 @@ struct proc *
 nextReady (int *q, int *c)
 {
     //cprintf("entering nextReady method  c-- %d q[0] %d \n",*c,q[0]);
-    struct proc *p = NULL;
+    struct proc *p = 0;
     int pid;
     int i;
     for (i = 0; i < *c; i++)
@@ -319,7 +319,7 @@ nextReady (int *q, int *c)
             }
         }
     }
-//				cprintf ("runnable NULL");
+//				cprintf ("runnable 0");
     return p;
 }
 
@@ -364,10 +364,10 @@ scheduler (void)
                     q1[c1] = proc;
 
                     /*delete proc from q0*/
-                    q0[i]=NULL;
+                    q0[i]=0;
                     for(j=i;j<=c0-1;j++)
                         q0[j] = q0[j+1];
-                    q0[c0] = NULL;
+                    q0[c0] = 0;
                     proc->ticks = 0;
                     c0--;
                 }
@@ -395,10 +395,10 @@ scheduler (void)
                     q2[c2] = proc;
 
                     /*delete proc from q0*/
-                    q1[i]=NULL;
+                    q1[i]=0;
                     for(j=i;j<=c1-1;j++)
                         q1[j] = q1[j+1];
-                    q1[c1] = NULL;
+                    q1[c1] = 0;
                     proc->ticks = 0;
                     c1--;
                 }
@@ -425,10 +425,10 @@ scheduler (void)
                     q3[c3] = proc;
 
                     /*delete proc from q0*/
-                    q2[i]=NULL;
+                    q2[i]=0;
                     for(j=i;j<=c2-1;j++)
                         q2[j] = q2[j+1];
-                    q2[c2] =NULL;
+                    q2[c2] =0;
                     proc->ticks = 0;
                     c2--;
                 }
@@ -449,7 +449,7 @@ scheduler (void)
                 switchkvm();
 
                 /*move process to end of its own queue */
-                q3[i]=NULL;
+                q3[i]=0;
                 for(j=i;j<=c3-1;j++)
                     q3[j] = q3[j+1];
                 q3[c3] = proc;
