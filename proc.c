@@ -12,6 +12,16 @@ struct {
   struct proc proc[NPROC];
 } ptable;
 
+struct proc* q0[64]; // 우선순위 HIGH 큐
+struct proc* q1[64]; // 우선순위 MEDIUM 큐
+struct proc* q2[64]; // 우선순위 LOW 큐
+
+int c0 = -1; // 우선순위 HIGH 큐의 카운터
+int c1 = -1; // 우선순위 MEDIUM 큐의 카운터
+int c2 = -1; // 우선순위 LOW 큐의 카운터
+
+int clkPerPrio[4] = {4, 4, 4, 4}; // 우선순위별 클릭 수
+
 static struct proc *initproc;
 
 int nextpid = 1;
