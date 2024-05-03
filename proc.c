@@ -356,7 +356,7 @@ scheduler(void) {
                 if(p && p->state == RUNNABLE) {
                     p->state = RUNNING;
                     switchuvm(p);
-                    swtch(&cpu->scheduler, p->context);
+                    swtch(&(c->scheduler), p->context);
                     switchkvm();
 
                     if(p->ticks >= TICKS_PER_SLICE) {  // 시간 조각을 모두 사용했을 경우
