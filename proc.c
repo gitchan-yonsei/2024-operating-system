@@ -372,12 +372,12 @@ scheduler(void) {
                     p->priority++;
                     q1[c1] = p;
 
-                    q0[i] = NULL;
+                    q0[i] = 0;
                     for (int j = i; j <= c0 - 1; j++) {
                         q0[j] = q0[j + 1];
                     }
 
-                    q0[c0] = NULL;
+                    q0[c0] = 0;
                     p->ticks = 0;
                     c0--;
                 }
@@ -403,7 +403,7 @@ scheduler(void) {
                     c2++;
                     p->priority++;
                     q2[c2] = p;
-                    q1[i] = NULL;
+                    q1[i] = 0;
                     for (int j = i; j <= c1 - 1; j++) {
                         q1[j] = q1[j + 1];
                         p->ticks = 0;
