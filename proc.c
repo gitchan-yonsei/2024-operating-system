@@ -432,7 +432,7 @@ scheduler(void) {
 //            highP = 0;
         }
         release(&ptable.lock);
-    }
+//    }
 }
 
 // Enter scheduler.  Must hold only ptable.lock
