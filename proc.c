@@ -362,7 +362,7 @@ wait(void)
 void
 scheduler(void) {
     struct proc *p;
-    int i, j, pri;
+    struct proc *highP = 0;
     struct cpu *c = mycpu();
     c->proc = 0;
 
@@ -372,46 +372,89 @@ scheduler(void) {
 
         // Loop over process table looking for process to run.
         acquire(&ptable.lock);
-        for(pri = HIGH; pri <= LOW; pri++) {
-            for(i = 0; i < count[pri]; i++) {
-                p = dequeue(pri);
-                if(p && p->state == RUNNABLE) {
-                    c->proc = p;
-                    p->state = RUNNING;
-                    switchuvm(p);
+        for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+            if (p->state != RUNNABLE)
+                continue;
 
-                    swtch(&(c->scheduler), p->context);
-                    switchkvm();
-
-                    if(p->ticks >= TICKS_PER_SLICE) {  // 시간 조각을 모두 사용했을 경우
-                        p->ticks = 0;  // 클릭 수 초기화
-                        if(pri < LOW) {
-                            // 낮은 우선순위로 이동
-                            queue[pri][i] = 0;
-                            if(count[pri + 1] < NPROC) {
-                                queue[pri + 1][count[pri + 1]++] = p;
-                                p->priority = pri + 1;
-                            }
-                            // 큐 조정
-                            for(j = i; j < count[pri] - 1; j++) {
-                                queue[pri][j] = queue[pri][j + 1];
-                            }
-                            count[pri]--;
-                            i--;  // 인덱스 조정
-                        }
-                    }
-
-                    if (p->state == RUNNABLE || p->state == SLEEPING) {
-                        enqueue(p);
-                    }
-
-                    c->proc = 0;
-                }
+            if (highP == 0
+                || p->nice < highP->nice
+                || (p->nice == highP->nice && p->pid < highP->pid)) {
+                highP = p;
             }
+
+            if (highP && highP->state == RUNNABLE) {
+                c->proc = highP;
+                switchuvm(highP);
+                highP->state = RUNNING;
+
+                // Switch to chosen process.  It is the process's job
+                // to release ptable.lock and then reacquire it
+                // before jumping back to us.
+                swtch(&(c->scheduler), highP->context);
+                switchkvm();
+            }
+
+            // Process is done running for now.
+            // It should have changed its p->state before coming back.
+            c->proc = 0;
+            highP = 0;
         }
         release(&ptable.lock);
     }
 }
+//void
+//scheduler(void) {
+//    struct proc *p;
+//    int i, j, pri;
+//    struct cpu *c = mycpu();
+//    c->proc = 0;
+//
+//    for (;;) {
+//        // Enable interrupts on this processor.
+//        sti();
+//
+//        // Loop over process table looking for process to run.
+//        acquire(&ptable.lock);
+//        for(pri = HIGH; pri <= LOW; pri++) {
+//            for(i = 0; i < count[pri]; i++) {
+//                p = dequeue(pri);
+//                if(p && p->state == RUNNABLE) {
+//                    c->proc = p;
+//                    p->state = RUNNING;
+//                    switchuvm(p);
+//
+//                    swtch(&(c->scheduler), p->context);
+//                    switchkvm();
+//
+//                    if(p->ticks >= TICKS_PER_SLICE) {  // 시간 조각을 모두 사용했을 경우
+//                        p->ticks = 0;  // 클릭 수 초기화
+//                        if(pri < LOW) {
+//                            // 낮은 우선순위로 이동
+//                            queue[pri][i] = 0;
+//                            if(count[pri + 1] < NPROC) {
+//                                queue[pri + 1][count[pri + 1]++] = p;
+//                                p->priority = pri + 1;
+//                            }
+//                            // 큐 조정
+//                            for(j = i; j < count[pri] - 1; j++) {
+//                                queue[pri][j] = queue[pri][j + 1];
+//                            }
+//                            count[pri]--;
+//                            i--;  // 인덱스 조정
+//                        }
+//                    }
+//
+//                    if (p->state == RUNNABLE || p->state == SLEEPING) {
+//                        enqueue(p);
+//                    }
+//
+//                    c->proc = 0;
+//                }
+//            }
+//        }
+//        release(&ptable.lock);
+//    }
+//}
 
 // Enter scheduler.  Must hold only ptable.lock
 // and have changed proc->state. Saves and restores
