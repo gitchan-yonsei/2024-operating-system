@@ -7,6 +7,8 @@
 #include "proc.h"
 #include "spinlock.h"
 
+#define TICKS_MAX 4
+
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
