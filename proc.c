@@ -343,6 +343,7 @@ wait(void)
 void
 scheduler(void) {
     struct proc *p;
+    int i, j;
     struct cpu *c = mycpu();
     c->proc = 0;
 
@@ -354,7 +355,7 @@ scheduler(void) {
         acquire(&ptable.lock);
 
         if (c0 != -1) {
-            for (int i = 0; i <= c0; i++) {
+            for (i = 0; i <= c0; i++) {
                 if (q0[i]->state != RUNNABLE) {
                     continue;
                 }
@@ -371,7 +372,7 @@ scheduler(void) {
         }
 
         if (c1 != -1) {
-            for (int i = 0; i <= c1; i++) {
+            for (i = 0; i <= c1; i++) {
                 if (q1[i]->state != RUNNABLE) {
                     continue;
                 }
@@ -388,7 +389,7 @@ scheduler(void) {
         }
 
         if (c2 != -1) {
-            for (int i = 0; i <= c2; i++) {
+            for (i = 0; i <= c2; i++) {
                 if (q2[i]->state != RUNNABLE) {
                     continue;
                 }
@@ -403,36 +404,7 @@ scheduler(void) {
                 p = 0;
             }
         }
-
-//        for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
-//            if (p->state != RUNNABLE)
-//                continue;
-//
-//            if (highP == 0
-//                || p->nice < highP->nice
-//                || (p->nice == highP->nice && p->pid < highP->pid)) {
-//                highP = p;
-//            }
-//
-//            if (highP && highP->state == RUNNABLE) {
-//                c->proc = highP;
-//                switchuvm(highP);
-//                highP->state = RUNNING;
-//
-//                // Switch to chosen process.  It is the process's job
-//                // to release ptable.lock and then reacquire it
-//                // before jumping back to us.
-//                swtch(&(c->scheduler), highP->context);
-//                switchkvm();
-//            }
-//
-//            // Process is done running for now.
-//            // It should have changed its p->state before coming back.
-//            c->proc = 0;
-//            highP = 0;
-        }
-        release(&ptable.lock);
-//    }
+    }
 }
 
 // Enter scheduler.  Must hold only ptable.lock
