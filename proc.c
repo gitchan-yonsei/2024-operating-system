@@ -364,7 +364,7 @@ scheduler(void) {
                 }
 
                 p = q0[i];
-                p->clicks++;
+                p->ticks++;
                 switchuvm(p);
                 p->state = RUNNING;
                 swtch(&c->scheduler, p->context);
