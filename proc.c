@@ -405,7 +405,7 @@ scheduler(void) {
 
                 if (p->ticks >= 4) {
                     c2++;
-                    proc->priority++;
+                    p->priority++;
                     q2[c2] = p;
 
                     /*delete proc from q0*/
