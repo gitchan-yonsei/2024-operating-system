@@ -404,6 +404,7 @@ scheduler(void) {
                 p = 0;
             }
         }
+        release(&ptable.lock);
     }
 }
 
