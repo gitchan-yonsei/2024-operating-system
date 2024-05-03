@@ -343,7 +343,7 @@ wait(void)
 void
 scheduler(void) {
     struct proc *p;
-    int i, j;
+    int i;
     struct cpu *c = mycpu();
     c->proc = 0;
 
