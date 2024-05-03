@@ -384,13 +384,11 @@ scheduler(void) {
                     p->ticks = 0;
                     c0--;
                 }
-
                 c->proc = 0;
             }
         }
 
         if (c1 != -1) {
-
             for (i = 0; i <= c1; i++) {
                 if (q1[i]->state != RUNNABLE) {
                     continue;
@@ -421,32 +419,29 @@ scheduler(void) {
             }
         }
 
-            if (c2 != -1) {
-                for (i = 0; i <= c2; i++) {
-                    if (q2[i]->state != RUNNABLE) {
-                        continue;
-                    }
-
-                    p = q2[i];
-                    p->ticks++;
-                    switchuvm(p);
-                    p->state = RUNNING;
-                    swtch(&c->scheduler, p->context);
-                    switchkvm();
-
-                    q2[i] = 0;
-                    for (j = 0; j < c2; j++) {
-                        q2[j] = q2[j + 1];
-                    }
-                    q2[j] = q2[j + 1];
-
-                    c->proc = 0;
+        if (c2 != -1) {
+            for (i = 0; i <= c2; i++) {
+                if (q2[i]->state != RUNNABLE) {
+                    continue;
                 }
 
-            }
+                p = q2[i];
+                p->ticks++;
+                switchuvm(p);
+                p->state = RUNNING;
+                swtch(&c->scheduler, p->context);
+                switchkvm();
 
-            release(&ptable.lock);
+                q2[i] = 0;
+                for (j = 0; j < c2; j++) {
+                    q2[j] = q2[j + 1];
+                }
+                q2[j] = q2[j + 1];
+
+                c->proc = 0;
+            }
         }
+        release(&ptable.lock);
     }
 }
         //
