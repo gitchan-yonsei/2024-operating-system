@@ -367,6 +367,21 @@ scheduler(void) {
                 swtch(&(mycpu()->scheduler), p->context);
                 switchkvm();
 
+                if (p->ticks >= CLOCK_TICS_MAX) {
+                    c1++;
+                    p->priority++;
+                    q1[c1] = p;
+
+                    q0[i] = NULL;
+                    for (int j = i; j <= c0 - 1; j++) {
+                        q0[j] = q0[j + 1];
+                    }
+
+                    q0[c0] = NULL;
+                    p->ticks = 0;
+                    c0--;
+                }
+
                 p = 0;
             }
         }
@@ -383,6 +398,18 @@ scheduler(void) {
                 p->state = RUNNING;
                 swtch(&(mycpu()->scheduler), p->context);
                 switchkvm();
+
+                if (p->ticks >= CLOCK_TICS_MAX) {
+                    c2++;
+                    p->priority++;
+                    q2[c2] = p;
+                    q1[i] = NULL;
+                    for (int j = i; j <= c1 - 1; j++) {
+                        q1[j] = q1[j + 1];
+                        p->ticks = 0;
+                        c1--;
+                    }
+                }
 
                 p = 0;
             }
@@ -512,9 +539,33 @@ wakeup1(void *chan)
 {
   struct proc *p;
 
-  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
-    if(p->state == SLEEPING && p->chan == chan)
-      p->state = RUNNABLE;
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+        if (p->state == SLEEPING && p->chan == chan) {
+            p->ticks = 0;
+            p->state = RUNNABLE;
+        }
+
+//            if (p->priority == 0) {
+//                c0++;
+//                for (i = c0; i > 0; i--) {
+//                    q0[i] = q0[i - 1];
+//                }
+//                q0[0] = p;
+//            }
+//            if (p->priority == 1) {
+//                c1++;
+//                for (i = c1; i > 0; i--) {
+//                    q1[i] = q1[i - 1];
+//                }
+//                q1[0] = p;
+//            }
+//            if(p->priority == 2) {
+//                c2++;
+//                for (i = c2; i > 0; i--) {
+//                    q2[i] = q2[i - 1];
+//                }
+//                q2[0] = p;
+//            }
 }
 
 // Wake up all processes sleeping on chan.
