@@ -7,12 +7,22 @@
 #include "proc.h"
 #include "spinlock.h"
 
+#define CLOCK_TICS_MAX 4
+
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
 } ptable;
 
 static struct proc *initproc;
+
+struct proc* q0[NPROC];
+struct proc* q1[NPROC];
+struct proc* q2[NPROC];
+
+int c0 = -1;.
+int c1 = -1;
+int c2 = -1;
 
 int nextpid = 1;
 extern void forkret(void);
@@ -82,12 +92,20 @@ allocproc(void)
     if(p->state == UNUSED)
       goto found;
 
+  p->priority = 0;
+  p->ticks = 0;
+  c0++
+  q0[c0] = p;
   release(&ptable.lock);
   return 0;
 
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
+  p->priority = 0;
+  p->ticks = 0;
+  c0++;
+  q0[c0] = p;
 
   release(&ptable.lock);
 
