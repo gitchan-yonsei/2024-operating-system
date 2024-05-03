@@ -14,6 +14,14 @@ struct {
 
 static struct proc *initproc;
 
+struct proc* q0[64];
+struct proc* q1[64];
+struct proc* q2[64];
+
+int c0 = -1;
+int c1 = -1;
+int c2 = -1;
+
 int nextpid = 1;
 extern void forkret(void);
 extern void trapret(void);
