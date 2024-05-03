@@ -88,14 +88,16 @@ allocproc(void)
 
   acquire(&ptable.lock);
 
-  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
-    if(p->state == UNUSED)
-      goto found;
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+      if (p->state == UNUSED) {
+          goto found;
+      }
+  }
 
-    p->priority = 0;
-    p->ticks = 0;
-    c0++;
-    q0[c0] = p;
+  p->priority = 0;
+  p->ticks = 0;
+  c0++;
+  q0[c0] = p;
   release(&ptable.lock);
   return 0;
 
