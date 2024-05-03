@@ -20,6 +20,21 @@ struct {
 struct proc* queue[3][NPROC];  // 세 개의 우선순위 큐
 int count[3] = {0, 0, 0};      // 각 큐의 프로세스 수
 
+void enqueue(struct proc *p) {
+    int priority = p->priority;
+    queue[priority][queue_count[priority]++] = p;
+}
+
+struct proc* dequeue(int priority) {
+    if (queue_count[priority] == 0) return 0;
+    struct proc* p = queue[priority][0];
+    for(int i = 0; i < queue_count[priority] - 1; i++) {
+        queue[priority][i] = queue[priority][i + 1];
+    }
+    queue_count[priority]--;
+    return p;
+}
+
 int clkPerPrio[4] = {4, 4, 4, 4}; // 우선순위별 클릭 수
 
 static struct proc *initproc;
@@ -100,9 +115,7 @@ found:
   p->pid = nextpid++;
   p->priority = HIGH;
   p->ticks = 0;
-    if (count[HIGH] < NPROC) {
-        queue[HIGH][count[HIGH]++] = p;
-    }
+  enqueue(p);
 
   release(&ptable.lock);
 
@@ -234,6 +247,17 @@ fork(void)
 
   np->state = RUNNABLE;
 
+  np->priority = 0;
+  np->ticks = 0;
+  enqueue(np);
+
+
+    if (myproc()->state == RUNNING) {
+        myproc()->state = RUNNABLE;
+    }
+
+    sched();
+
   release(&ptable.lock);
 
   return pid;
@@ -352,10 +376,12 @@ scheduler(void) {
         acquire(&ptable.lock);
         for(pri = HIGH; pri <= LOW; pri++) {
             for(i = 0; i < count[pri]; i++) {
-                p = queue[pri][i];
+                p = dequeue(pri);
                 if(p && p->state == RUNNABLE) {
+                    c->proc = p;
                     p->state = RUNNING;
                     switchuvm(p);
+
                     swtch(&(c->scheduler), p->context);
                     switchkvm();
 
@@ -376,7 +402,12 @@ scheduler(void) {
                             i--;  // 인덱스 조정
                         }
                     }
-                    p = 0;
+
+                    if (p->state == RUNNABLE || p->state == SLEEPING) {
+                        enqueue(p);
+                    }
+
+                    c->proc = 0;
                 }
             }
         }
@@ -532,10 +563,10 @@ wakeup(void *chan)
   wakeup1(chan);
   release(&ptable.lock);
 
-//  struct proc *curproc = myproc();
-//  if (curproc->state == RUNNING) {
-//      yield();
-//  }
+  struct proc *curproc = myproc();
+  if (curproc->state == RUNNING) {
+      yield();
+  }
 }
 
 // Kill the process with the given pid.
