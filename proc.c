@@ -350,38 +350,38 @@ scheduler(void) {
 
         // Loop over process table looking for process to run.
         acquire(&ptable.lock);
-        for (pri = HIGH; pri < LOW; pri++) {
-            p = queue[pri][i];
+        for(pri = HIGH; pri <= LOW; pri++) {
+            for(i = 0; i < count[pri]; i++) {
+                p = queue[pri][i];
+                if(p && p->state == RUNNABLE) {
+                    p->state = RUNNING;
+                    switchuvm(p);
+                    swtch(&cpu->scheduler, p->context);
+                    switchkvm();
 
-            if (p && p->state == RUNNABLE) {
-                p->state = RUNNING;
-                switchuvm(p);
-                swtch(&(mycpu()->scheduler), p->context);
-                switchkvm();
-
-                if (p->ticks >= TICKS_PER_SLICE) {
-                    p->ticks = 0;
-                    if (pri < LOW) {
-                        queue[pri][i] = 0;
-                        if (count[pri + 1] < NPROC) {
-                            queue[pri + 1][count[pri + 1]++] = p;
-                            p->priority = pri + 1;
-//                            p->priority++;
+                    if(p->ticks >= TICKS_PER_SLICE) {  // 시간 조각을 모두 사용했을 경우
+                        p->ticks = 0;  // 클릭 수 초기화
+                        if(pri < LOW) {
+                            // 낮은 우선순위로 이동
+                            queue[pri][i] = 0;
+                            if(count[pri + 1] < NPROC) {
+                                queue[pri + 1][count[pri + 1]++] = p;
+                                p->priority = pri + 1;
+                            }
+                            // 큐 조정
+                            for(j = i; j < count[pri] - 1; j++) {
+                                queue[pri][j] = queue[pri][j + 1];
+                            }
+                            count[pri]--;
+                            i--;  // 인덱스 조정
                         }
-
-                        for (j = i; j < count[pri] - 1; j++) {
-                            queue[pri][j] = queue[pri][j + 1];
-                        }
-
-                        count[pri]--;
-                        i--;
                     }
+                    p = 0;
                 }
-                p = 0;
             }
         }
+        release(&ptable.lock);
     }
-    release(&ptable.lock);
 }
 
 
