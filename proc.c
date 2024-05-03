@@ -354,7 +354,7 @@ scheduler(void) {
         acquire(&ptable.lock);
 
         if (c0 != -1) {
-            for (int i = 0; i < c0; i++) {
+            for (int i = 0; i <= c0; i++) {
                 if (q0[i]->state != RUNNABLE) {
                     continue;
                 }
@@ -371,7 +371,7 @@ scheduler(void) {
         }
 
         if (c1 != -1) {
-            for (int i = 0; i < c1; i++) {
+            for (int i = 0; i <= c1; i++) {
                 if (q1[i]->state != RUNNABLE) {
                     continue;
                 }
@@ -388,7 +388,7 @@ scheduler(void) {
         }
 
         if (c2 != -1) {
-            for (int i = 0; i < c2; i++) {
+            for (int i = 0; i <= c2; i++) {
                 if (q2[i]->state != RUNNABLE) {
                     continue;
                 }
