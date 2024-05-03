@@ -92,6 +92,10 @@ allocproc(void)
     if(p->state == UNUSED)
       goto found;
 
+    p->priority = 0;
+    p->ticks = 0;
+    c0++;
+    q0[c0] = p;
   release(&ptable.lock);
   return 0;
 
