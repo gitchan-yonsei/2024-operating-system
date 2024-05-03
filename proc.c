@@ -105,7 +105,7 @@ found:
   p->state = EMBRYO;
   p->pid = nextpid++;
   p->priority = 0;
-  p->ticks =0;
+  p->ticks = 0;
   c0++;
   q0[c0] = p;
 
@@ -345,7 +345,8 @@ wait(void)
 void
 scheduler(void) {
     struct proc *p;
-    struct proc *highP = 0;
+    int i, j;
+//    struct proc *highP = 0;
     struct cpu *c = mycpu();
     c->proc = 0;
 
@@ -355,36 +356,130 @@ scheduler(void) {
 
         // Loop over process table looking for process to run.
         acquire(&ptable.lock);
-        for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
-            if (p->state != RUNNABLE)
-                continue;
 
-            if (highP == 0
-                || p->nice < highP->nice
-                || (p->nice == highP->nice && p->pid < highP->pid)) {
-                highP = p;
-            }
+        if (c0 != -1) {
+            for (i = 0; i <= c0; i++) {
+                if (q0[i]->state != RUNNABLE) {
+                    continue;
+                }
 
-            if (highP && highP->state == RUNNABLE) {
-                c->proc = highP;
-                switchuvm(highP);
-                highP->state = RUNNING;
-
-                // Switch to chosen process.  It is the process's job
-                // to release ptable.lock and then reacquire it
-                // before jumping back to us.
-                swtch(&(c->scheduler), highP->context);
+                p = q0[i];
+                p->clicks++;
+                switchuvm(p);
+                p->state = RUNNING;
+                swtch(&c->scheduler, p->context);
                 switchkvm();
+
+                if (p->ticks >= 4) {
+                    c1++;
+                    p->priority++;
+                    q1[c1] = p;
+
+                    /*delete proc from q0*/
+                    q0[i] = 0;
+                    for (j = i; j <= c0 - 1; j++) {
+                        q0[j] = q0[j + 1];
+                    }
+                    q0[c0] = 0;
+                    p->ticks = 0;
+                    c0--;
+                }
+
+                c->proc = 0;
+            }
+        }
+
+        if (c1 != -1) {
+
+            for (i = 0; i <= c1; i++) {
+                if (q1[i]->state != RUNNABLE) {
+                    continue;
+                }
+
+                p = q1[i];
+                p->ticks++;
+                switchuvm(p);
+                p->state = RUNNING;
+                swtch(&c->scheduler, p->context);
+                switchkvm();
+
+                if (p->ticks >= 4) {
+                    c2++;
+                    proc->priority++;
+                    q2[c2] = p;
+
+                    /*delete proc from q0*/
+                    q1[i] = 0;
+                    for (j = i; j <= c1 - 1; j++) {
+                        q1[j] = q1[j + 1];
+                    }
+                    q1[c1] = 0;
+                    p->ticks = 0;
+                    c1--;
+                }
+                c->proc = 0;
+            }
+        }
+
+            if (c2 != -1) {
+                for (i = 0; i <= c2; i++) {
+                    if (q2[i]->state != RUNNABLE) {
+                        continue;
+                    }
+
+                    p = q2[i];
+                    p->ticks++;
+                    switchuvm(p);
+                    p->state = RUNNING;
+                    swtch(&c->scheduler, p->context);
+                    switchkvm();
+
+                    q2[i] = 0;
+                    for (j = 0; j < c2; j++) {
+                        q2[j] = q2[j + 1];
+                    }
+                    q2[j] = q2[j + 1];
+
+                    c->proc = 0;
+                }
+
             }
 
-            // Process is done running for now.
-            // It should have changed its p->state before coming back.
-            c->proc = 0;
-            highP = 0;
+            release(&ptable.lock);
         }
-        release(&ptable.lock);
     }
 }
+        //
+
+//        for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+//            if (p->state != RUNNABLE)
+//                continue;
+//
+//            if (highP == 0
+//                || p->nice < highP->nice
+//                || (p->nice == highP->nice && p->pid < highP->pid)) {
+//                highP = p;
+//            }
+//
+//            if (highP && highP->state == RUNNABLE) {
+//                c->proc = highP;
+//                switchuvm(highP);
+//                highP->state = RUNNING;
+//
+//                // Switch to chosen process.  It is the process's job
+//                // to release ptable.lock and then reacquire it
+//                // before jumping back to us.
+//                swtch(&(c->scheduler), highP->context);
+//                switchkvm();
+//            }
+//
+//            // Process is done running for now.
+//            // It should have changed its p->state before coming back.
+//            c->proc = 0;
+//            highP = 0;
+//        }
+//        release(&ptable.lock);
+
 
 // Enter scheduler.  Must hold only ptable.lock
 // and have changed proc->state. Saves and restores
