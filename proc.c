@@ -341,7 +341,6 @@ void
 scheduler(void) {
     struct proc *p;
     int i, j, pri;
-    struct proc *highP = 0;
     struct cpu *c = mycpu();
     c->proc = 0;
 
@@ -356,7 +355,7 @@ scheduler(void) {
 
             if (p && p->state == RUNNABLE) {
                 p->state = RUNNING;
-                switchkvm(p);
+                switchuvm(p);
                 swtch(&(mycpu()->scheduler), p->context);
                 switchkvm();
 
@@ -378,7 +377,7 @@ scheduler(void) {
                         i--;
                     }
                 }
-                proc = 0;
+                p = 0;
             }
         }
     }
