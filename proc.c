@@ -22,16 +22,16 @@ int count[3] = {0, 0, 0};      // 각 큐의 프로세스 수
 
 void enqueue(struct proc *p) {
     int priority = p->priority;
-    queue[priority][queue_count[priority]++] = p;
+    queue[priority][count[priority]++] = p;
 }
 
 struct proc* dequeue(int priority) {
-    if (queue_count[priority] == 0) return 0;
+    if (count[priority] == 0) return 0;
     struct proc* p = queue[priority][0];
-    for(int i = 0; i < queue_count[priority] - 1; i++) {
+    for(int i = 0; i < count[priority] - 1; i++) {
         queue[priority][i] = queue[priority][i + 1];
     }
-    queue_count[priority]--;
+    count[priority]--;
     return p;
 }
 
