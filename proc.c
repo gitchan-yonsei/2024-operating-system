@@ -20,7 +20,7 @@ struct proc* q0[NPROC];
 struct proc* q1[NPROC];
 struct proc* q2[NPROC];
 
-int c0 = -1;.
+int c0 = -1;
 int c1 = -1;
 int c2 = -1;
 
