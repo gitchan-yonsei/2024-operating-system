@@ -118,6 +118,11 @@ allocproc(void)
         }
     }
 
+    p->priority = 0;
+    p->ticks = 0;
+    c0++;
+    q0[c0] = p;
+
   release(&ptable.lock);
   return 0;
 
