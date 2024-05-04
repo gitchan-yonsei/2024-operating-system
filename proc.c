@@ -12,6 +12,16 @@ struct {
   struct proc proc[NPROC];
 } ptable;
 
+struct proc* q0[64];
+struct proc* q1[64];
+struct proc* q2[64];
+struct proc* q3[64];
+int c0 = -1;
+int c1 = -1;
+int c2 = -1;
+int c3 = -1;
+int clkPerPrio[4] = {1, 2, 4, 8};
+
 static struct proc *initproc;
 
 int nextpid = 1;
