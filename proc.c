@@ -627,27 +627,27 @@ wakeup1(void *chan)
             enqueue(p);
 
             // 아래의 if문은 전부 삭제 가능
-            if(p->priority == 0) {
-                c0++;
-                for(i=c0;i>0;i--) {
-                    q0[i] = q0[i-1];
-                }
-                q0[0] = p;
-            }
-            else if(p->priority == 1) {
-                c1++;
-                for(i=c1;i>0;i--) {
-                    q1[i] = q1[i-1];
-                }
-                q1[0] = p;
-            }
-            else if(p->priority == 2) {
-                c2++;
-                for(i=c2;i>0;i--) {
-                    q2[i] = q2[i-1];
-                }
-                q2[0] = p;
-            }
+//            if(p->priority == 0) {
+//                c0++;
+//                for(i=c0;i>0;i--) {
+//                    q0[i] = q0[i-1];
+//                }
+//                q0[0] = p;
+//            }
+//            else if(p->priority == 1) {
+//                c1++;
+//                for(i=c1;i>0;i--) {
+//                    q1[i] = q1[i-1];
+//                }
+//                q1[0] = p;
+//            }
+//            else if(p->priority == 2) {
+//                c2++;
+//                for(i=c2;i>0;i--) {
+//                    q2[i] = q2[i-1];
+//                }
+//                q2[0] = p;
+//            }
 
             for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
                 if (p->state == SLEEPING && p->chan == chan)
