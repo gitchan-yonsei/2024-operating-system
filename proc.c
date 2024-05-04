@@ -108,7 +108,7 @@ allocproc(void)
         }
     }
 
-    p->priority = 0;
+    p->priority = HIGH;
     p->ticks = 0;
     enqueue(p);
 
@@ -118,7 +118,7 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
-  p->priority = 0;
+  p->priority = HIGH;
   p->ticks = 0;
   enqueue(p);
 
@@ -252,7 +252,7 @@ fork(void)
 
   np->state = RUNNABLE;
 
-  np->priority = 0;
+  np->priority = HIGH;
   np->ticks = 0;
   enqueue(np);
 
