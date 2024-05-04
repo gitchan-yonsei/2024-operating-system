@@ -40,7 +40,7 @@ struct proc* dequeue(int priority) {
     return p;
 }
 
-int clkPerPrio[4] = {4, 4, 4, 4};
+int clkPerPrio[NUM_QUEUES] = {4, 4, 4};
 
 //void enqueue(struct proc *p) {
 //    int priority = p->priority;
@@ -394,104 +394,42 @@ wait(void)
 //  - swtch to start running that process
 //  - eventually that process transfers control
 //      via swtch back to the scheduler.
-void scheduler(void)
-{
-
+void scheduler(void) {
     struct proc *p;
-    int i;
-    int j;
-    for(;;){
-        // Enable interrupts on this processor.
-        sti();
+    int i, prio;
 
-        // Loop over process table looking for process to run.
+    for (;;) {
+        sti();  // Enable interrupts
+
         acquire(&ptable.lock);
-
-
-        if(c0!=-1){
-
-            for (i = 0; i <= c0; i++) {
-                if (q0[i]->state != RUNNABLE)
+        for (prio = 0; prio < NUM_QUEUES; prio++) {
+            for (i = 0; i < queue_count[prio]; i++) {
+                p = queue[prio][i];
+                if (p->state != RUNNABLE)
                     continue;
-                p = q0[i];
-                mycpu()->proc = q0[i];
-                p->ticks++;
+
+                // Context switch to this process
+                mycpu()->proc = p;
                 switchuvm(p);
                 p->state = RUNNING;
-                swtch(&(mycpu()->scheduler), mycpu()->proc->context);
+                swtch(&(mycpu()->scheduler), p->context);
                 switchkvm();
-                if (p->ticks == clkPerPrio[0]) {
-                    /*copy proc to lower priority queue*/
-                    c1++;
-                    mycpu()->proc->priority = mycpu()->proc->priority + 1;
-                    q1[c1] = mycpu()->proc;
 
-                    /*delete proc from q0*/
-                    q0[i] = 0;
-                    for (j = i; j <= c0 - 1; j++)
-                        q0[j] = q0[j + 1];
-                    q0[c0] = 0;
-                    mycpu()->proc->ticks = 0;
-                    c0--;
+                // Check time slice
+                if (++p->ticks >= MAX_TICKS) {
+                    p->ticks = 0;
+                    p->state = RUNNABLE;
+                    if (p->priority < LOW) {
+                        enqueue(p, prio + 1);  // Move to lower priority queue
+                    } else {
+                        enqueue(p, prio);  // Re-enqueue at the same priority
+                    }
+                    dequeue(prio);  // Remove from current queue
                 }
 
                 mycpu()->proc = 0;
             }
         }
-        if(c1!=-1){
-            for(i=0;i<=c1;i++){
-                if(q1[i]->state != RUNNABLE)
-                    continue;
-
-                p=q1[i];
-                mycpu()->proc = q1[i];
-                mycpu()->proc->ticks++;
-                switchuvm(p);
-                p->state = RUNNING;
-                swtch(&(mycpu()->scheduler), mycpu()->proc->context);
-                switchkvm();
-                if(p->ticks ==clkPerPrio[1]){
-
-                    /*copy proc to lower priority queue*/
-                    c2++;
-                    mycpu()->proc->priority=mycpu()->proc->priority+1;
-                    q2[c2] = mycpu()->proc;
-
-                    /*delete proc from q0*/
-                    q1[i]=0;
-                    for(j=i;j<=c1-1;j++)
-                        q1[j] = q1[j+1];
-                    q1[c1] = 0;
-                    mycpu()->proc->ticks = 0;
-                    c1--;
-                }
-                mycpu()->proc = 0;
-            }
-        }
-
-        if(c2!=-1){
-            for(i=0;i<=c2;i++){
-                if(q2[i]->state != RUNNABLE)
-                    continue;
-
-                p=q2[i];
-                mycpu()->proc = q2[i];
-                mycpu()->proc->ticks++;
-                switchuvm(p);
-                p->state = RUNNING;
-                swtch(&(mycpu()->scheduler), mycpu()->proc->context);
-                switchkvm();
-
-                /*move process to end of its own queue */
-                q2[i]=0;
-                for(j=i;j<=c2-1;j++)
-                    q2[j] = q2[j+1];
-                q2[c2] = mycpu()->proc;
-
-                mycpu()->proc = 0;
-            }
-        }
-        
         release(&ptable.lock);
     }
 }
