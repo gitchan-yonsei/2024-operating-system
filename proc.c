@@ -22,11 +22,15 @@ void enqueue(struct proc *p) {
 }
 
 struct proc* dequeue(int priority) {
-    if (queue_count[priority] == 0) return 0;
-    struct proc* p = queue[priority][0];
-    for(int i = 0; i < queue_count[priority] - 1; i++) {
-        queue[priority][i] = queue[priority][i + 1];
+    if (queue_count[priority] == 0) {
+        return 0;
     }
+
+    struct proc* p = queue[priority][0];
+    memmove(&queue[priority][0], &queue[priority][1], sizeof(struct proc*) * (queue_count[priority] - 1));
+//    for(int i = 0; i < queue_count[priority] - 1; i++) {
+//        queue[priority][i] = queue[priority][i + 1];
+//    }
     queue_count[priority]--;
     return p;
 }
