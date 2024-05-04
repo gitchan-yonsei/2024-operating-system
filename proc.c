@@ -446,7 +446,7 @@ void scheduler(void)
                     mycpu()->proc->ticks = 0;
                     c2--;
                 }
-                proc = 0;
+                mycpu()->proc = 0;
             }
         }
         if(c3!=-1){
