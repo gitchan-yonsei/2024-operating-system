@@ -369,7 +369,9 @@ void scheduler(void)
 {
 
     struct proc *p;
-    int i;
+    int i, priority;
+    struct cpu* c = mycpu();
+
     for(;;){
         // Enable interrupts on this processor.
         sti();
@@ -377,7 +379,7 @@ void scheduler(void)
         // Loop over process table looking for process to run.
         acquire(&ptable.lock);
 
-        for (int priority = HIGH; priority <= LOW; priority++) {
+        for (priority = HIGH; priority <= LOW; priority++) {
             for (i = 0; i < queue_count[priority]; i++) {
                 p = queue[priority][i];
 
@@ -385,11 +387,11 @@ void scheduler(void)
                     continue;
                 }
 
-                mycpu()->proc = p;
+                c->proc = p;
                 p->ticks++;
                 switchuvm(p);
                 p->state = RUNNING;
-                swtch(&(mycpu()->scheduler), mycpu()->proc->context);
+                swtch(&(c->scheduler), c->proc->context);
                 switchkvm();
 
                 if (p->ticks == MAX_TICKS) {
