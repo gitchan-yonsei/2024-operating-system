@@ -23,20 +23,23 @@ int c2 = -1;
 
 int clkPerPrio[4] = {4, 4, 4, 4};
 
-//void enqueue(struct proc *p) {
-//    int priority = p->priority;
-//    queue[priority][queue_count[priority]++] = p;
-//}
-//
-//struct proc* dequeue(int priority) {
-//    if (queue_count[priority] == 0) return 0;
-//    struct proc* p = queue[priority][0];
-//    for(int i = 0; i < queue_count[priority] - 1; i++) {
-//        queue[priority][i] = queue[priority][i + 1];
-//    }
-//    queue_count[priority]--;
-//    return p;
-//}
+struct proc *queue[NUM_QUEUES][NPROC];  // Process queues for each priority level
+int queue_count[NUM_QUEUES] = {0};      // Number of processes in each queue
+
+void enqueue(struct proc *p) {
+    int priority = p->priority;
+    queue[priority][queue_count[priority]++] = p;
+}
+
+struct proc* dequeue(int priority) {
+    if (queue_count[priority] == 0) return 0;
+    struct proc* p = queue[priority][0];
+    for(int i = 0; i < queue_count[priority] - 1; i++) {
+        queue[priority][i] = queue[priority][i + 1];
+    }
+    queue_count[priority]--;
+    return p;
+}
 
 struct {
   struct spinlock lock;
