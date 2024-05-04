@@ -13,10 +13,10 @@
 #define NUM_QUEUES 3
 #define MAX_TICKS 4
 
-struct proc* q0[64];
-struct proc* q1[64];
-struct proc* q2[64];
-struct proc* q3[64];
+struct proc* q0[NPROC];
+struct proc* q1[NPROC];
+struct proc* q2[NPROC];
+struct proc* q3[NPROC];
 
 int c0 = -1;
 int c1 = -1;
@@ -25,21 +25,21 @@ int c3 = -1;
 
 int clkPerPrio[4] = {4, 4, 4, 4};
 
-// 지금 안쓰는 코드들
-//void enqueue(struct proc *p) {
-//    int priority = p->priority;
-//    queue[priority][queue_count[priority]++] = p;
-//}
-//
-//struct proc* dequeue(int priority) {
-//    if (queue_count[priority] == 0) return 0;
-//    struct proc* p = queue[priority][0];
-//    for(int i = 0; i < queue_count[priority] - 1; i++) {
-//        queue[priority][i] = queue[priority][i + 1];
-//    }
-//    queue_count[priority]--;
-//    return p;
-//}
+ 지금 안쓰는 코드들
+void enqueue(struct proc *p) {
+    int priority = p->priority;
+    queue[priority][queue_count[priority]++] = p;
+}
+
+struct proc* dequeue(int priority) {
+    if (queue_count[priority] == 0) return 0;
+    struct proc* p = queue[priority][0];
+    for(int i = 0; i < queue_count[priority] - 1; i++) {
+        queue[priority][i] = queue[priority][i + 1];
+    }
+    queue_count[priority]--;
+    return p;
+}
 
 struct {
   struct spinlock lock;
@@ -362,7 +362,6 @@ wait(void)
 //  - swtch to start running that process
 //  - eventually that process transfers control
 //      via swtch back to the scheduler.
-
 void scheduler(void)
 {
 
@@ -688,7 +687,7 @@ int nice(int value)
 	p->nice = new_nice;
 	release(&ptable.lock);
 
-    yield();
+//    yield();
 
 	return p->nice;
 }
