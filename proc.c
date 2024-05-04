@@ -432,45 +432,48 @@ void scheduler(void)
                 p->state = RUNNING;
                 swtch(&(mycpu()->scheduler), mycpu()->proc->context);
                 switchkvm();
-                if(p->ticks ==clkPerPrio[2]){
-                    /*copy proc to lower priority queue*/
-                    c3++;
-                    mycpu()->proc->priority=mycpu()->proc->priority+1;
-                    q3[c3] = mycpu()->proc;
 
-                    /*delete proc from q0*/
-                    q2[i]=0;
-                    for(j=i;j<=c2-1;j++)
-                        q2[j] = q2[j+1];
-                    q2[c2] =0;
-                    mycpu()->proc->ticks = 0;
-                    c2--;
-                }
+                q2[i]=0;
+                for(j=i;j<=c2-1;j++)
+                    q2[j] = q2[j+1];
+                q2[c2] =0;
+                mycpu()->proc->ticks = 0;
+                c2--;
+
+//                if(p->ticks ==clkPerPrio[2]){
+//                    /*copy proc to lower priority queue*/
+//                    c3++;
+//                    mycpu()->proc->priority=mycpu()->proc->priority+1;
+//                    q3[c3] = mycpu()->proc;
+//
+//                    /*delete proc from q0*/
+//
+//                }
                 mycpu()->proc = 0;
             }
         }
-        if(c3!=-1){
-            for(i=0;i<=c3;i++){
-                if(q3[i]->state != RUNNABLE)
-                    continue;
-
-                p=q3[i];
-                mycpu()->proc = q3[i];
-                mycpu()->proc->ticks++;
-                switchuvm(p);
-                p->state = RUNNING;
-                swtch(&(mycpu()->scheduler), mycpu()->proc->context);
-                switchkvm();
-
-                /*move process to end of its own queue */
-                q3[i]=0;
-                for(j=i;j<=c3-1;j++)
-                    q3[j] = q3[j+1];
-                q3[c3] = mycpu()->proc;
-
-                mycpu()->proc = 0;
-            }
-        }
+//        if(c3!=-1){
+//            for(i=0;i<=c3;i++){
+//                if(q3[i]->state != RUNNABLE)
+//                    continue;
+//
+//                p=q3[i];
+//                mycpu()->proc = q3[i];
+//                mycpu()->proc->ticks++;
+//                switchuvm(p);
+//                p->state = RUNNING;
+//                swtch(&(mycpu()->scheduler), mycpu()->proc->context);
+//                switchkvm();
+//
+//                /*move process to end of its own queue */
+//                q3[i]=0;
+//                for(j=i;j<=c3-1;j++)
+//                    q3[j] = q3[j+1];
+//                q3[c3] = mycpu()->proc;
+//
+//                mycpu()->proc = 0;
+//            }
+//        }
         
         release(&ptable.lock);
     }
