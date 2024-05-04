@@ -347,44 +347,178 @@ wait(void)
 
 void scheduler(void)
 {
-    struct proc *p;
 
-    for(;;) {
+    struct proc *p;
+    int i;
+    int j;
+    for(;;){
         // Enable interrupts on this processor.
         sti();
 
         // Loop over process table looking for process to run.
         acquire(&ptable.lock);
-        for(int pri = 2; pri >= 0; pri--) {  // 우선순위가 높은 것부터 낮은 것 순으로 검색
-            for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
-                if(p->state != RUNNABLE || p->priority != pri)
-                    continue;  // 상태가 RUNNABLE이 아니거나, 현재 검사하는 우선순위가 아니면 건너뜀
 
-                // Run this process
-                mycpu()->proc = p;
+
+        if(c0!=-1){
+
+            for(i=0;i<=c0;i++){
+                if(q0[i]->state != RUNNABLE)
+                    continue;
+                p=q0[i];
+                mycpu()->proc = q0[i];
+                p->ticks++;
                 switchuvm(p);
                 p->state = RUNNING;
-                swtch(&(mycpu()->scheduler), p->context);
+                swtch(&(mycpu()->scheduler), proc->context);
                 switchkvm();
+                if(p->ticks ==clkPerPrio[0]){
+                    /*copy proc to lower priority queue*/
+                    c1++;
+                    mycpu()->proc->priority=mycpu()->proc->priority+1;
+                    q1[c1] = mycpu()->proc;
 
-                // Process is done running for now.
-                // It must have changed its p->state before coming back.
-                mycpu()->proc = 0;
-
-                // Check if the time slice is used up and move to lower priority queue if necessary
-                if (++p->ticks >= 4) {  // Time slice for each priority is set to 4 ticks
-                    if (p->priority < 2) {  // If not already in the lowest priority
-                        p->priority++;  // Lower the priority
-                    }
-                    p->ticks = 0;  // Reset ticks for next round
+                    /*delete proc from q0*/
+                    q0[i]=0;
+                    for(j=i;j<=c0-1;j++)
+                        q0[j] = q0[j+1];
+                    q0[c0] = 0;
+                    mycpu()->proc->ticks = 0;
+                    c0--;
                 }
+
+                mycpu()->proc = 0;
             }
         }
+        if(c1!=-1){
+            for(i=0;i<=c1;i++){
+                if(q1[i]->state != RUNNABLE)
+                    continue;
+
+                p=q1[i];
+                mycpu()->proc = q1[i];
+                mycpu()->proc->ticks++;
+                switchuvm(p);
+                p->state = RUNNING;
+                swtch(&(mycpu()->scheduler), proc->context);
+                switchkvm();
+                if(p->ticks ==clkPerPrio[1]){
+
+                    /*copy proc to lower priority queue*/
+                    c2++;
+                    mycpu()->proc->priority=mycpu()->proc->priority+1;
+                    q2[c2] = mycpu()->proc;
+
+                    /*delete proc from q0*/
+                    q1[i]=0;
+                    for(j=i;j<=c1-1;j++)
+                        q1[j] = q1[j+1];
+                    q1[c1] = 0;
+                    mycpu()->proc->ticks = 0;
+                    c1--;
+                }
+                mycpu()->proc = 0;
+            }
+        }
+
+        if(c2!=-1){
+            for(i=0;i<=c2;i++){
+                if(q2[i]->state != RUNNABLE)
+                    continue;
+
+                p=q2[i];
+                mycpu()->proc = q2[i];
+                mycpu()->proc->ticks++;
+                switchuvm(p);
+                p->state = RUNNING;
+                swtch(&(mycpu()->scheduler), mycpu()->proc->context);
+                switchkvm();
+                if(p->ticks ==clkPerPrio[2]){
+                    /*copy proc to lower priority queue*/
+                    c3++;
+                    mycpu()->proc->priority=proc->priority+1;
+                    q3[c3] = mycpu()->proc;
+
+                    /*delete proc from q0*/
+                    q2[i]=NULL;
+                    for(j=i;j<=c2-1;j++)
+                        q2[j] = q2[j+1];
+                    q2[c2] =0;
+                    mycpu()->proc->ticks = 0;
+                    c2--;
+                }
+                proc = 0;
+            }
+        }
+        if(c3!=-1){
+            for(i=0;i<=c3;i++){
+                if(q3[i]->state != RUNNABLE)
+                    continue;
+
+                p=q3[i];
+                mycpu()->proc = q3[i];
+                mycpu()->proc->ticks++;
+                switchuvm(p);
+                p->state = RUNNING;
+                swtch(&(mycpu()->scheduler), mycpu()->proc->context);
+                switchkvm();
+
+                /*move process to end of its own queue */
+                q3[i]=0;
+                for(j=i;j<=c3-1;j++)
+                    q3[j] = q3[j+1];
+                q3[c3] = mycpu()->proc;
+
+                mycpu()->proc = 0;
+            }
+        }
+        
         release(&ptable.lock);
     }
 }
 
 
+
+// GPT가 짜줘서 돌아가긴 하는데 제대로 동작 안함
+//{
+//    struct proc *p;
+//
+//    for(;;) {
+//        // Enable interrupts on this processor.
+//        sti();
+//
+//        // Loop over process table looking for process to run.
+//        acquire(&ptable.lock);
+//        for(int pri = 2; pri >= 0; pri--) {  // 우선순위가 높은 것부터 낮은 것 순으로 검색
+//            for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+//                if(p->state != RUNNABLE || p->priority != pri)
+//                    continue;  // 상태가 RUNNABLE이 아니거나, 현재 검사하는 우선순위가 아니면 건너뜀
+//
+//                // Run this process
+//                mycpu()->proc = p;
+//                switchuvm(p);
+//                p->state = RUNNING;
+//                swtch(&(mycpu()->scheduler), p->context);
+//                switchkvm();
+//
+//                // Process is done running for now.
+//                // It must have changed its p->state before coming back.
+//                mycpu()->proc = 0;
+//
+//                // Check if the time slice is used up and move to lower priority queue if necessary
+//                if (++p->ticks >= 4) {  // Time slice for each priority is set to 4 ticks
+//                    if (p->priority < 2) {  // If not already in the lowest priority
+//                        p->priority++;  // Lower the priority
+//                    }
+//                    p->ticks = 0;  // Reset ticks for next round
+//                }
+//            }
+//        }
+//        release(&ptable.lock);
+//    }
+//}
+
+
+// 과거 prio 코드
 //void
 //scheduler(void) {
 //    struct proc *p;
