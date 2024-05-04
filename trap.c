@@ -54,13 +54,13 @@ trap(struct trapframe *tf)
         if (myproc() != 0) {
             myproc()->ticks++;
 
-            if (myproc()->ticks == 4) {
-                if (myproc()->state == RUNNING) {
-                    myproc()->state = RUNNABLE;
-                }
-
-                sched();
-            }
+//            if (myproc()->ticks == 4) {
+//                if (myproc()->state == RUNNING) {
+//                    myproc()->state = RUNNABLE;
+//                }
+//
+//                sched();
+//            }
         }
       wakeup(&ticks);
       release(&tickslock);
