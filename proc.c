@@ -399,7 +399,7 @@ void scheduler(void)
                 mycpu()->proc->ticks++;
                 switchuvm(p);
                 p->state = RUNNING;
-                swtch(&(mycpu()->scheduler), proc->context);
+                swtch(&(mycpu()->scheduler), mycpu()->proc->context);
                 switchkvm();
                 if(p->ticks ==clkPerPrio[1]){
 
