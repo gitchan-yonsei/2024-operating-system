@@ -13,16 +13,6 @@
 #define NUM_QUEUES 3
 #define MAX_TICKS 4
 
-//struct proc* q0[NPROC];
-//struct proc* q1[NPROC];
-//struct proc* q2[NPROC];
-
-//int c0 = -1;
-//int c1 = -1;
-//int c2 = -1;
-
-//int clkPerPrio[4] = {4, 4, 4, 4};
-
 struct proc *queue[NUM_QUEUES][NPROC];  // Process queues for each priority level
 int queue_count[NUM_QUEUES] = {0};      // Number of processes in each queue
 
@@ -120,8 +110,6 @@ allocproc(void)
 
     p->priority = 0;
     p->ticks = 0;
-//    c0++; //
-//    q0[c0] = p; //
     enqueue(p);
 
   release(&ptable.lock);
@@ -132,8 +120,6 @@ found:
   p->pid = nextpid++;
   p->priority = 0;
   p->ticks = 0;
-//  c0++; //
-//  q0[c0] = p; //
   enqueue(p);
 
   release(&ptable.lock);
@@ -268,8 +254,6 @@ fork(void)
 
   np->priority = 0;
   np->ticks = 0;
-//  c0++; //
-//  q0[c0] = np; //
   enqueue(np);
 
     if (myproc()->state == RUNNING) {
@@ -427,92 +411,6 @@ void scheduler(void)
         release(&ptable.lock);
     }
 }
-
-
-// 아래 내용은 이후에 전부 삭제 가능
-//        if(c0!=-1){
-//
-//            for (i = 0; i <= c0; i++) {
-//                if (q0[i]->state != RUNNABLE)
-//                    continue;
-//                p = q0[i];
-//                mycpu()->proc = q0[i];
-//                p->ticks++;
-//                switchuvm(p);
-//                p->state = RUNNING;
-//                swtch(&(mycpu()->scheduler), mycpu()->proc->context);
-//                switchkvm();
-//                if (p->ticks == clkPerPrio[0]) {
-//                    /*copy proc to lower priority queue*/
-//                    c1++;
-//                    mycpu()->proc->priority = mycpu()->proc->priority + 1;
-//                    q1[c1] = mycpu()->proc;
-//
-//                    /*delete proc from q0*/
-//                    q0[i] = 0;
-//                    for (j = i; j <= c0 - 1; j++)
-//                        q0[j] = q0[j + 1];
-//                    q0[c0] = 0;
-//                    mycpu()->proc->ticks = 0;
-//                    c0--;
-//                }
-//
-//                mycpu()->proc = 0;
-//            }
-//        }
-//        if(c1!=-1){
-//            for(i=0;i<=c1;i++){
-//                if(q1[i]->state != RUNNABLE)
-//                    continue;
-//
-//                p=q1[i];
-//                mycpu()->proc = q1[i];
-//                mycpu()->proc->ticks++;
-//                switchuvm(p);
-//                p->state = RUNNING;
-//                swtch(&(mycpu()->scheduler), mycpu()->proc->context);
-//                switchkvm();
-//                if(p->ticks ==clkPerPrio[1]){
-//
-//                    /*copy proc to lower priority queue*/
-//                    c2++;
-//                    mycpu()->proc->priority=mycpu()->proc->priority+1;
-//                    q2[c2] = mycpu()->proc;
-//
-//                    /*delete proc from q0*/
-//                    q1[i]=0;
-//                    for(j=i;j<=c1-1;j++)
-//                        q1[j] = q1[j+1];
-//                    q1[c1] = 0;
-//                    mycpu()->proc->ticks = 0;
-//                    c1--;
-//                }
-//                mycpu()->proc = 0;
-//            }
-//        }
-//
-//        if(c2!=-1){
-//            for(i=0;i<=c2;i++){
-//                if(q2[i]->state != RUNNABLE)
-//                    continue;
-//
-//                p=q2[i];
-//                mycpu()->proc = q2[i];
-//                mycpu()->proc->ticks++;
-//                switchuvm(p);
-//                p->state = RUNNING;
-//                swtch(&(mycpu()->scheduler), mycpu()->proc->context);
-//                switchkvm();
-//
-//                /*move process to end of its own queue */
-//                q2[i]=0;
-//                for(j=i;j<=c2-1;j++)
-//                    q2[j] = q2[j+1];
-//                q2[c2] = mycpu()->proc;
-//
-//                mycpu()->proc = 0;
-//            }
-//        }
         
 
 // Enter scheduler.  Must hold only ptable.lock
@@ -624,29 +522,6 @@ wakeup1(void *chan)
             p->state = RUNNABLE;
 
             enqueue(p);
-
-            // 아래의 if문은 전부 삭제 가능
-//            if(p->priority == 0) {
-//                c0++;
-//                for(i=c0;i>0;i--) {
-//                    q0[i] = q0[i-1];
-//                }
-//                q0[0] = p;
-//            }
-//            else if(p->priority == 1) {
-//                c1++;
-//                for(i=c1;i>0;i--) {
-//                    q1[i] = q1[i-1];
-//                }
-//                q1[0] = p;
-//            }
-//            else if(p->priority == 2) {
-//                c2++;
-//                for(i=c2;i>0;i--) {
-//                    q2[i] = q2[i-1];
-//                }
-//                q2[0] = p;
-//            }
 
             for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
                 if (p->state == SLEEPING && p->chan == chan)
