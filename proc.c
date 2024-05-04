@@ -378,7 +378,7 @@ void scheduler(void)
         acquire(&ptable.lock);
 
         for (int priority = HIGH; priority < LOW; priority++) {
-            for (i = 0; i < queue_count[priority];) {
+            for (i = 0; i < queue_count[priority]; i++) {
                 p = queue[priority][i];
 
                 if (p->state != RUNNABLE) {
@@ -406,7 +406,6 @@ void scheduler(void)
                     continue;
                 }
 
-                i++;
                 mycpu()->proc = 0;
             }
         }
