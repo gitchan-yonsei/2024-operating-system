@@ -524,10 +524,11 @@ static void
 wakeup1(void *chan)
 {
     struct proc *p;
-    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
-        if(p->state == SLEEPING && p->chan == chan)
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+        if (p->state == SLEEPING && p->chan == chan) {
             p->state = RUNNABLE;
             enqueue(p);
+        }
 //    for (int priority = HIGH; priority <= LOW; priority++) {
 //        if (queue_count[priority] > 0) {
 //            for (int i = 0; i < queue_count[priority]; i++) {
