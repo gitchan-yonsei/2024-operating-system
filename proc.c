@@ -263,6 +263,17 @@ fork(void)
 
   np->state = RUNNABLE;
 
+  np->priority = 0;
+  np->ticks = 0;
+  c0++;
+  q0[c0] = np;
+
+    if (myproc()->state == RUNNING) {
+        myproc()->state = RUNNABLE;
+    }
+
+    sched();
+
   release(&ptable.lock);
 
   return pid;
