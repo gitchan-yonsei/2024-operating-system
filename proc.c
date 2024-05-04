@@ -688,7 +688,7 @@ wakeup1(void *chan)
     int i;
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
         if (p->state == SLEEPING && p->chan == chan){
-            p->clicks = 0;
+            p->ticks = 0;
             p->state = RUNNABLE;
             if(p->priority == 0) {
                 c0++;
