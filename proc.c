@@ -544,9 +544,7 @@ wakeup1(void *chan)
     }
 
     if (flag) {
-        release(&ptable.lock);
-        yield();
-        acquire(&ptable.lock);
+        sched();
     }
 }
 
