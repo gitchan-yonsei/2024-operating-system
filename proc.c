@@ -399,15 +399,12 @@ void scheduler(void)
                     p->state = RUNNABLE;
                     if (p->priority < LOW) {
                         p->priority++;
-                        enqueue(p);
                     }
-                    if (p->priority == LOW) {
-                        enqueue(p);
-                    }
-                    dequeue(priority);
+                    enqueue(p);
+                    i = -1;
                 }
 
-                mycpu()->proc = 0;
+                c->proc = 0;
             }
         }
         release(&ptable.lock);
