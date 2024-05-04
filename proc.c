@@ -369,7 +369,7 @@ void scheduler(void)
                 p->ticks++;
                 switchuvm(p);
                 p->state = RUNNING;
-                swtch(&(mycpu()->scheduler), proc->context);
+                swtch(&(mycpu()->scheduler), mycpu()->proc ->context);
                 switchkvm();
                 if(p->ticks ==clkPerPrio[0]){
                     /*copy proc to lower priority queue*/
@@ -439,7 +439,7 @@ void scheduler(void)
                     q3[c3] = mycpu()->proc;
 
                     /*delete proc from q0*/
-                    q2[i]=NULL;
+                    q2[i]=0;
                     for(j=i;j<=c2-1;j++)
                         q2[j] = q2[j+1];
                     q2[c2] =0;
