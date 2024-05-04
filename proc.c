@@ -618,7 +618,6 @@ static void
 wakeup1(void *chan)
 {
     struct proc *p;
-    int i;
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
         if (p->state == SLEEPING && p->chan == chan){
             p->ticks = 0;
