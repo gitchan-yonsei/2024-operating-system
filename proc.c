@@ -7,20 +7,21 @@
 #include "proc.h"
 #include "spinlock.h"
 
-struct {
-  struct spinlock lock;
-  struct proc proc[NPROC];
-} ptable;
-
 struct proc* q0[64];
 struct proc* q1[64];
 struct proc* q2[64];
 struct proc* q3[64];
+
 int c0 = -1;
 int c1 = -1;
 int c2 = -1;
 int c3 = -1;
 int clkPerPrio[4] = {1, 2, 4, 8};
+
+struct {
+  struct spinlock lock;
+  struct proc proc[NPROC];
+} ptable;
 
 static struct proc *initproc;
 
@@ -88,9 +89,16 @@ allocproc(void)
 
   acquire(&ptable.lock);
 
-  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
-    if(p->state == UNUSED)
-      goto found;
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+        if (p->state == UNUSED) {
+            goto found;
+        }
+    }
+
+    p->priority = 0;
+    p->ticks = 0;
+    c0++;
+    q0[c0] = p;
 
   release(&ptable.lock);
   return 0;
@@ -98,6 +106,10 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
+    p->priority = 0;
+    p->ticks = 0;
+    c0++;
+    q0[c0] = p;
 
   release(&ptable.lock);
 
