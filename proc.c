@@ -435,7 +435,7 @@ void scheduler(void)
                 if(p->ticks ==clkPerPrio[2]){
                     /*copy proc to lower priority queue*/
                     c3++;
-                    mycpu()->proc->priority=proc->priority+1;
+                    mycpu()->proc->priority=mycpu()->proc->priority+1;
                     q3[c3] = mycpu()->proc;
 
                     /*delete proc from q0*/
