@@ -13,15 +13,15 @@
 #define NUM_QUEUES 3
 #define MAX_TICKS 4
 
-struct proc* q0[NPROC];
-struct proc* q1[NPROC];
-struct proc* q2[NPROC];
+//struct proc* q0[NPROC];
+//struct proc* q1[NPROC];
+//struct proc* q2[NPROC];
 
-int c0 = -1;
-int c1 = -1;
-int c2 = -1;
+//int c0 = -1;
+//int c1 = -1;
+//int c2 = -1;
 
-int clkPerPrio[4] = {4, 4, 4, 4};
+//int clkPerPrio[4] = {4, 4, 4, 4};
 
 struct proc *queue[NUM_QUEUES][NPROC];  // Process queues for each priority level
 int queue_count[NUM_QUEUES] = {0};      // Number of processes in each queue
@@ -120,8 +120,8 @@ allocproc(void)
 
     p->priority = 0;
     p->ticks = 0;
-    c0++; //
-    q0[c0] = p; //
+//    c0++; //
+//    q0[c0] = p; //
     enqueue(p);
 
   release(&ptable.lock);
@@ -132,8 +132,8 @@ found:
   p->pid = nextpid++;
   p->priority = 0;
   p->ticks = 0;
-  c0++; //
-  q0[c0] = p; //
+//  c0++; //
+//  q0[c0] = p; //
   enqueue(p);
 
   release(&ptable.lock);
@@ -268,8 +268,8 @@ fork(void)
 
   np->priority = 0;
   np->ticks = 0;
-  c0++; //
-  q0[c0] = np; //
+//  c0++; //
+//  q0[c0] = np; //
   enqueue(np);
 
     if (myproc()->state == RUNNING) {
