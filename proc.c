@@ -26,20 +26,20 @@ int c3 = -1;
 int clkPerPrio[4] = {4, 4, 4, 4};
 
 // 지금 안쓰는 코드들
-void enqueue(struct proc *p) {
-    int priority = p->priority;
-    queue[priority][queue_count[priority]++] = p;
-}
-
-struct proc* dequeue(int priority) {
-    if (queue_count[priority] == 0) return 0;
-    struct proc* p = queue[priority][0];
-    for(int i = 0; i < queue_count[priority] - 1; i++) {
-        queue[priority][i] = queue[priority][i + 1];
-    }
-    queue_count[priority]--;
-    return p;
-}
+//void enqueue(struct proc *p) {
+//    int priority = p->priority;
+//    queue[priority][queue_count[priority]++] = p;
+//}
+//
+//struct proc* dequeue(int priority) {
+//    if (queue_count[priority] == 0) return 0;
+//    struct proc* p = queue[priority][0];
+//    for(int i = 0; i < queue_count[priority] - 1; i++) {
+//        queue[priority][i] = queue[priority][i + 1];
+//    }
+//    queue_count[priority]--;
+//    return p;
+//}
 
 struct {
   struct spinlock lock;
