@@ -120,8 +120,9 @@ allocproc(void)
 
     p->priority = 0;
     p->ticks = 0;
-    c0++;
-    q0[c0] = p;
+    c0++; //
+    q0[c0] = p; //
+    enqueue(p);
 
   release(&ptable.lock);
   return 0;
@@ -131,8 +132,9 @@ found:
   p->pid = nextpid++;
   p->priority = 0;
   p->ticks = 0;
-  c0++;
-  q0[c0] = p;
+  c0++; //
+  q0[c0] = p; //
+  enqueue(p);
 
   release(&ptable.lock);
 
@@ -266,8 +268,9 @@ fork(void)
 
   np->priority = 0;
   np->ticks = 0;
-  c0++;
-  q0[c0] = np;
+  c0++; //
+  q0[c0] = np; //
+  enqueue(np);
 
     if (myproc()->state == RUNNING) {
         myproc()->state = RUNNABLE;
