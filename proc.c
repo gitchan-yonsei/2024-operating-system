@@ -16,7 +16,7 @@ int c0 = -1;
 int c1 = -1;
 int c2 = -1;
 int c3 = -1;
-int clkPerPrio[4] = {1, 2, 4, 8};
+int clkPerPrio[4] = {4, 4, 4, 4};
 
 struct {
   struct spinlock lock;
