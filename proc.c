@@ -401,7 +401,7 @@ void scheduler(void)
                         p->priority++;
                     }
                     enqueue(p);
-                    i = -1;
+//                    i = -1;
                 }
 
                 c->proc = 0;
