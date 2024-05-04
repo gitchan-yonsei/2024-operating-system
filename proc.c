@@ -17,9 +17,28 @@ struct proc* q0[NPROC];
 struct proc* q1[NPROC];
 struct proc* q2[NPROC];
 
+struct proc *queue[NUM_QUEUES][NPROC];  // Process queues for each priority level
+
 int c0 = -1;
 int c1 = -1;
 int c2 = -1;
+
+int queue_count[NUM_QUEUES] = {0};      // Number of processes in each queue
+
+void enqueue(struct proc *p) {
+    int priority = p->priority;
+    queue[priority][queue_count[priority]++] = p;
+}
+
+struct proc* dequeue(int priority) {
+    if (queue_count[priority] == 0) return 0;
+    struct proc* p = queue[priority][0];
+    for(int i = 0; i < queue_count[priority] - 1; i++) {
+        queue[priority][i] = queue[priority][i + 1];
+    }
+    queue_count[priority]--;
+    return p;
+}
 
 int clkPerPrio[4] = {4, 4, 4, 4};
 
