@@ -7,6 +7,11 @@
 #include "proc.h"
 #include "spinlock.h"
 
+#define HIGH 0
+#define MEDIUM 1
+#define LOW 2
+#define NUM_QUEUES 3
+
 struct proc* q0[64];
 struct proc* q1[64];
 struct proc* q2[64];
@@ -16,6 +21,8 @@ int c0 = -1;
 int c1 = -1;
 int c2 = -1;
 int c3 = -1;
+int queue_count[NUM_QUEUES] = {0};
+
 int clkPerPrio[4] = {4, 4, 4, 4};
 
 struct {
