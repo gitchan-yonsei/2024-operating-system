@@ -118,10 +118,6 @@ allocproc(void)
         }
     }
 
-//    p->priority = HIGH;
-//    p->ticks = 0;
-//    enqueue(p);
-
   release(&ptable.lock);
   return 0;
 
