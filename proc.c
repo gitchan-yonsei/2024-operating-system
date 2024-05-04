@@ -17,30 +17,29 @@ struct proc* q0[64];
 struct proc* q1[64];
 struct proc* q2[64];
 struct proc* q3[64];
-struct proc *queue[NUM_QUEUES][NPROC];
 
 int c0 = -1;
 int c1 = -1;
 int c2 = -1;
 int c3 = -1;
-int queue_count[NUM_QUEUES] = {0};
-
-void enqueue(struct proc *p) {
-    int priority = p->priority;
-    queue[priority][queue_count[priority]++] = p;
-}
-
-struct proc* dequeue(int priority) {
-    if (queue_count[priority] == 0) return 0;
-    struct proc* p = queue[priority][0];
-    for(int i = 0; i < queue_count[priority] - 1; i++) {
-        queue[priority][i] = queue[priority][i + 1];
-    }
-    queue_count[priority]--;
-    return p;
-}
 
 int clkPerPrio[4] = {4, 4, 4, 4};
+
+// 지금 안쓰는 코드들
+//void enqueue(struct proc *p) {
+//    int priority = p->priority;
+//    queue[priority][queue_count[priority]++] = p;
+//}
+//
+//struct proc* dequeue(int priority) {
+//    if (queue_count[priority] == 0) return 0;
+//    struct proc* p = queue[priority][0];
+//    for(int i = 0; i < queue_count[priority] - 1; i++) {
+//        queue[priority][i] = queue[priority][i + 1];
+//    }
+//    queue_count[priority]--;
+//    return p;
+//}
 
 struct {
   struct spinlock lock;
@@ -494,93 +493,6 @@ void scheduler(void)
         release(&ptable.lock);
     }
 }
-
-
-
-// GPT가 짜줘서 돌아가긴 하는데 제대로 동작 안함
-//{
-//    struct proc *p;
-//
-//    for(;;) {
-//        // Enable interrupts on this processor.
-//        sti();
-//
-//        // Loop over process table looking for process to run.
-//        acquire(&ptable.lock);
-//        for(int pri = 2; pri >= 0; pri--) {  // 우선순위가 높은 것부터 낮은 것 순으로 검색
-//            for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
-//                if(p->state != RUNNABLE || p->priority != pri)
-//                    continue;  // 상태가 RUNNABLE이 아니거나, 현재 검사하는 우선순위가 아니면 건너뜀
-//
-//                // Run this process
-//                mycpu()->proc = p;
-//                switchuvm(p);
-//                p->state = RUNNING;
-//                swtch(&(mycpu()->scheduler), p->context);
-//                switchkvm();
-//
-//                // Process is done running for now.
-//                // It must have changed its p->state before coming back.
-//                mycpu()->proc = 0;
-//
-//                // Check if the time slice is used up and move to lower priority queue if necessary
-//                if (++p->ticks >= 4) {  // Time slice for each priority is set to 4 ticks
-//                    if (p->priority < 2) {  // If not already in the lowest priority
-//                        p->priority++;  // Lower the priority
-//                    }
-//                    p->ticks = 0;  // Reset ticks for next round
-//                }
-//            }
-//        }
-//        release(&ptable.lock);
-//    }
-//}
-
-
-// 과거 prio 코드
-//void
-//scheduler(void) {
-//    struct proc *p;
-//    struct proc *highP = 0;
-//    struct cpu *c = mycpu();
-//    c->proc = 0;
-//
-//    for (;;) {
-//        // Enable interrupts on this processor.
-//        sti();
-//
-//        // Loop over process table looking for process to run.
-//        acquire(&ptable.lock);
-//        for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
-//            if (p->state != RUNNABLE)
-//                continue;
-//
-//            if (highP == 0
-//                || p->nice < highP->nice
-//                || (p->nice == highP->nice && p->pid < highP->pid)) {
-//                highP = p;
-//            }
-//
-//            if (highP && highP->state == RUNNABLE) {
-//                c->proc = highP;
-//                switchuvm(highP);
-//                highP->state = RUNNING;
-//
-//                // Switch to chosen process.  It is the process's job
-//                // to release ptable.lock and then reacquire it
-//                // before jumping back to us.
-//                swtch(&(c->scheduler), highP->context);
-//                switchkvm();
-//            }
-//
-//            // Process is done running for now.
-//            // It should have changed its p->state before coming back.
-//            c->proc = 0;
-//            highP = 0;
-//        }
-//        release(&ptable.lock);
-//    }
-//}
 
 // Enter scheduler.  Must hold only ptable.lock
 // and have changed proc->state. Saves and restores
