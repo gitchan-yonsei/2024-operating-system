@@ -344,49 +344,91 @@ wait(void)
 //  - swtch to start running that process
 //  - eventually that process transfers control
 //      via swtch back to the scheduler.
-void
-scheduler(void) {
-    struct proc *p;
-    struct proc *highP = 0;
-    struct cpu *c = mycpu();
-    c->proc = 0;
 
-    for (;;) {
+void scheduler(void)
+{
+    struct proc *p;
+    int i;
+
+    for(;;) {
         // Enable interrupts on this processor.
         sti();
 
         // Loop over process table looking for process to run.
         acquire(&ptable.lock);
-        for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
-            if (p->state != RUNNABLE)
-                continue;
+        for(int pri = 2; pri >= 0; pri--) {  // 우선순위가 높은 것부터 낮은 것 순으로 검색
+            for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+                if(p->state != RUNNABLE || p->priority != pri)
+                    continue;  // 상태가 RUNNABLE이 아니거나, 현재 검사하는 우선순위가 아니면 건너뜀
 
-            if (highP == 0
-                || p->nice < highP->nice
-                || (p->nice == highP->nice && p->pid < highP->pid)) {
-                highP = p;
-            }
-
-            if (highP && highP->state == RUNNABLE) {
-                c->proc = highP;
-                switchuvm(highP);
-                highP->state = RUNNING;
-
-                // Switch to chosen process.  It is the process's job
-                // to release ptable.lock and then reacquire it
-                // before jumping back to us.
-                swtch(&(c->scheduler), highP->context);
+                // Run this process
+                proc = p;
+                switchuvm(p);
+                p->state = RUNNING;
+                swtch(&cpu->scheduler, proc->context);
                 switchkvm();
-            }
 
-            // Process is done running for now.
-            // It should have changed its p->state before coming back.
-            c->proc = 0;
-            highP = 0;
+                // Process is done running for now.
+                // It must have changed its p->state before coming back.
+                proc = 0;
+
+                // Check if the time slice is used up and move to lower priority queue if necessary
+                if (++p->ticks >= 4) {  // Time slice for each priority is set to 4 ticks
+                    if (p->priority < 2) {  // If not already in the lowest priority
+                        p->priority++;  // Lower the priority
+                    }
+                    p->ticks = 0;  // Reset ticks for next round
+                }
+            }
         }
         release(&ptable.lock);
     }
 }
+
+
+//void
+//scheduler(void) {
+//    struct proc *p;
+//    struct proc *highP = 0;
+//    struct cpu *c = mycpu();
+//    c->proc = 0;
+//
+//    for (;;) {
+//        // Enable interrupts on this processor.
+//        sti();
+//
+//        // Loop over process table looking for process to run.
+//        acquire(&ptable.lock);
+//        for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+//            if (p->state != RUNNABLE)
+//                continue;
+//
+//            if (highP == 0
+//                || p->nice < highP->nice
+//                || (p->nice == highP->nice && p->pid < highP->pid)) {
+//                highP = p;
+//            }
+//
+//            if (highP && highP->state == RUNNABLE) {
+//                c->proc = highP;
+//                switchuvm(highP);
+//                highP->state = RUNNING;
+//
+//                // Switch to chosen process.  It is the process's job
+//                // to release ptable.lock and then reacquire it
+//                // before jumping back to us.
+//                swtch(&(c->scheduler), highP->context);
+//                switchkvm();
+//            }
+//
+//            // Process is done running for now.
+//            // It should have changed its p->state before coming back.
+//            c->proc = 0;
+//            highP = 0;
+//        }
+//        release(&ptable.lock);
+//    }
+//}
 
 // Enter scheduler.  Must hold only ptable.lock
 // and have changed proc->state. Saves and restores
