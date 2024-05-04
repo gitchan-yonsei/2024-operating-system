@@ -566,13 +566,14 @@ wakeup(void *chan)
             flag = 1;
         }
     }
-    release(&ptable.lock);
 
     if (flag) {
 //        acquire(&ptable.lock);
-        yield();
-//        release(&ptable.lock);
+        myproc()->state = RUNNABLE;
+        sched();
     }
+
+    release(&ptable.lock);
 }
 
 // Kill the process with the given pid.
