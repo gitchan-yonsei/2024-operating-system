@@ -386,7 +386,6 @@ void scheduler(void)
 
     struct proc *p;
     int i;
-    int j;
     for(;;){
         // Enable interrupts on this processor.
         sti();
