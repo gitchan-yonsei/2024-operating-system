@@ -420,9 +420,10 @@ void scheduler(void) {
                     p->ticks = 0;
                     p->state = RUNNABLE;
                     if (p->priority < LOW) {
-                        enqueue(p, prio + 1);  // Move to lower priority queue
+                        p->priority++;
+                        enqueue(p);  // Move to lower priority queue
                     } else {
-                        enqueue(p, prio);  // Re-enqueue at the same priority
+                        enqueue(p);  // Re-enqueue at the same priority
                     }
                     dequeue(prio);  // Remove from current queue
                 }
@@ -563,13 +564,6 @@ wakeup1(void *chan)
                 }
                 q2[0] = p;
             }
-//            else  {
-//                c3++;
-//                for(i=c3;i>0;i--) {
-//                    q3[i] = q3[i-1];
-//                }
-//                q3[0] = p;
-//            }
 
             for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
                 if (p->state == SLEEPING && p->chan == chan)
