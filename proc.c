@@ -531,6 +531,7 @@ static void
 wakeup1(void *chan)
 {
     struct proc *p;
+    int flag = 0;
 
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
         if (p->state == SLEEPING && p->chan == chan){
@@ -538,7 +539,14 @@ wakeup1(void *chan)
             p->ticks = 0;
 
             enqueueFront(p);
+            flag = 1;
         }
+    }
+
+    if (flag) {
+        release(&ptable.lock);
+        yield();
+        acquire(&ptable.lock);
     }
 }
 
