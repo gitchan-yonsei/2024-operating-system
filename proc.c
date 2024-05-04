@@ -553,8 +553,26 @@ void
 wakeup(void *chan)
 {
     acquire(&ptable.lock);
-    wakeup1(chan);
-    release(&ptable.lock);
+//    wakeup1(chan);
+    struct proc *p;
+    int flag = 0;
+
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+        if (p->state == SLEEPING && p->chan == chan){
+            p->state = RUNNABLE;
+            p->ticks = 0;
+
+            enqueueFront(p);
+            flag = 1;
+        }
+    }
+//    release(&ptable.lock);
+
+    if (flag) {
+//        acquire(&ptable.lock);
+        yield();
+        release(&ptable.lock);
+    }
 }
 
 // Kill the process with the given pid.
