@@ -403,7 +403,6 @@ void scheduler(void)
                         enqueue(p);
                     }
                     dequeue(priority);
-                    yield();
                 }
 
                 mycpu()->proc = 0;
