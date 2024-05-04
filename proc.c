@@ -566,12 +566,12 @@ wakeup(void *chan)
             flag = 1;
         }
     }
-//    release(&ptable.lock);
+    release(&ptable.lock);
 
     if (flag) {
 //        acquire(&ptable.lock);
         yield();
-        release(&ptable.lock);
+//        release(&ptable.lock);
     }
 }
 
