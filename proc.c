@@ -348,7 +348,7 @@ wait(void)
 void scheduler(void)
 {
     struct proc *p;
-    int i;
+//    int i;
 
     for(;;) {
         // Enable interrupts on this processor.
@@ -362,15 +362,15 @@ void scheduler(void)
                     continue;  // 상태가 RUNNABLE이 아니거나, 현재 검사하는 우선순위가 아니면 건너뜀
 
                 // Run this process
-                proc = p;
+                mycpu()->proc = p;
                 switchuvm(p);
                 p->state = RUNNING;
-                swtch(&cpu->scheduler, proc->context);
+                swtch(&(mycpu()->scheduler), p->context);
                 switchkvm();
 
                 // Process is done running for now.
                 // It must have changed its p->state before coming back.
-                proc = 0;
+                mycpu()->proc = 0;
 
                 // Check if the time slice is used up and move to lower priority queue if necessary
                 if (++p->ticks >= 4) {  // Time slice for each priority is set to 4 ticks
