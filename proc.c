@@ -13,8 +13,8 @@
 #define NUM_QUEUES 3
 #define MAX_TICKS 4
 
-struct proc *queue[NUM_QUEUES][NPROC];  // Process queues for each priority level
-int queue_count[NUM_QUEUES] = {0};      // Number of processes in each queue
+struct proc *queue[NUM_QUEUES][NPROC];
+int queue_count[NUM_QUEUES] = {0};
 
 void enqueue(struct proc *p) {
     int priority = p->priority;
@@ -118,9 +118,9 @@ allocproc(void)
         }
     }
 
-    p->priority = HIGH;
-    p->ticks = 0;
-    enqueue(p);
+//    p->priority = HIGH;
+//    p->ticks = 0;
+//    enqueue(p);
 
   release(&ptable.lock);
   return 0;
