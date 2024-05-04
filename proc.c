@@ -543,13 +543,6 @@ wakeup(void *chan)
   wakeup1(chan);
   release(&ptable.lock);
 
-    acquire(&ptable.lock);
-    if (myproc()->state == RUNNING) {
-        myproc()->state = RUNNABLE;
-    }
-    sched();
-    release(&ptable.lock);
-
 //  struct proc *curproc = myproc();
 //  if (curproc->state == RUNNING) {
 //      yield();
