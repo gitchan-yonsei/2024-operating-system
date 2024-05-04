@@ -25,7 +25,7 @@ int c3 = -1;
 
 int clkPerPrio[4] = {4, 4, 4, 4};
 
- 지금 안쓰는 코드들
+// 지금 안쓰는 코드들
 void enqueue(struct proc *p) {
     int priority = p->priority;
     queue[priority][queue_count[priority]++] = p;
