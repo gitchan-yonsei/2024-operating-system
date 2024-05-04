@@ -591,6 +591,10 @@ wakeup1(void *chan)
         if (p->state == SLEEPING && p->chan == chan){
             p->ticks = 0;
             p->state = RUNNABLE;
+
+            enqueue(p);
+
+            // 아래의 if문은 전부 삭제 가능
             if(p->priority == 0) {
                 c0++;
                 for(i=c0;i>0;i--) {
@@ -612,13 +616,6 @@ wakeup1(void *chan)
                 }
                 q2[0] = p;
             }
-//            else  {
-//                c3++;
-//                for(i=c3;i>0;i--) {
-//                    q3[i] = q3[i-1];
-//                }
-//                q3[0] = p;
-//            }
 
             for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
                 if (p->state == SLEEPING && p->chan == chan)
