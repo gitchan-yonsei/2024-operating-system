@@ -21,6 +21,16 @@ void enqueue(struct proc *p) {
     queue[priority][queue_count[priority]++] = p;
 }
 
+void enqueueFront(struct proc *p) {
+    int priority = p->priority;
+    int count = queue_count[priority];
+    for (int i = count; i > 0; i--) {
+        queue[priority][i] = queue[priority][i - 1];
+    }
+    queue[priority][0] = p;
+    queue_count[priority]++;
+}
+
 struct proc* dequeue(int priority) {
     if (queue_count[priority] == 0) return 0;
     struct proc* p = queue[priority][0];
@@ -515,14 +525,27 @@ static void
 wakeup1(void *chan)
 {
     struct proc *p;
-    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
-        if (p->state == SLEEPING && p->chan == chan){
-            p->ticks = 0;
-            p->state = RUNNABLE;
-
-            enqueue(p);
+    for (int priority = HIGH; priority <= LOW; priority++) {
+        if (queue_count[priority] > 0) {
+            for (int i = 0; i < queue_count[priority]; i++) {
+                p = queue[priority][i];
+                if (p->state == SLEEPING && p->chan == chan) {
+                    p->ticks = 0;
+                    p->state = RUNNABLE;
+                    enqueueFront(p);
+                }
+            }
         }
     }
+
+//    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+//        if (p->state == SLEEPING && p->chan == chan){
+//            p->ticks = 0;
+//            p->state = RUNNABLE;
+//
+//            enqueueFront(p);
+//        }
+//    }
 }
 
 // Wake up all processes sleeping on chan.
