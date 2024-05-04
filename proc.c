@@ -684,11 +684,46 @@ sleep(void *chan, struct spinlock *lk)
 static void
 wakeup1(void *chan)
 {
-  struct proc *p;
+    struct proc *p;
+    int i;
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+        if (p->state == SLEEPING && p->chan == chan){
+            p->clicks = 0;
+            p->state = RUNNABLE;
+            if(p->priority == 0) {
+                c0++;
+                for(i=c0;i>0;i--) {
+                    q0[i] = q0[i-1];
+                }
+                q0[0] = p;
+            }
+            else if(p->priority == 1) {
+                c1++;
+                for(i=c1;i>0;i--) {
+                    q1[i] = q1[i-1];
+                }
+                q1[0] = p;
+            }
+            else if(p->priority == 2) {
+                c2++;
+                for(i=c2;i>0;i--) {
+                    q2[i] = q2[i-1];
+                }
+                q2[0] = p;
+            }
+            else  {
+                c3++;
+                for(i=c3;i>0;i--) {
+                    q3[i] = q3[i-1];
+                }
+                q3[0] = p;
+            }
 
-  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
-    if(p->state == SLEEPING && p->chan == chan)
-      p->state = RUNNABLE;
+            for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+                if (p->state == SLEEPING && p->chan == chan)
+                    p->state = RUNNABLE;
+        }
+    }
 }
 
 // Wake up all processes sleeping on chan.
