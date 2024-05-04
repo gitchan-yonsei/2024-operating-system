@@ -46,7 +46,7 @@ int nextpid = 1;
 extern void forkret(void);
 extern void trapret(void);
 
-static int wakeup1(void *chan);
+static void wakeup1(void *chan, int *flag);
 
 void
 pinit(void)
@@ -515,33 +515,31 @@ sleep(void *chan, struct spinlock *lk)
 //PAGEBREAK!
 // Wake up all processes sleeping on chan.
 // The ptable lock must be held.
-static int
-wakeup1(void *chan)
+static void
+wakeup1(void *chan, int *flag)
 {
     struct proc *p;
-    int flag = 0;
 
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
         if (p->state == SLEEPING && p->chan == chan){
             p->state = RUNNABLE;
             p->ticks = 0;
             enqueue(p);
-            return 1;
+            *flag = 1;
         }
     }
-
-    return flag;
 }
 
 // Wake up all processes sleeping on chan.
 void
 wakeup(void *chan)
 {
+    int schedule_flag = 0;
   acquire(&ptable.lock);
-  int reschedule = wakeup1(chan);
+  wakeup1(chan, &schedule_flag);
   release(&ptable.lock);
 
-    if (reschedule) {
+    if (schedule_flag) {
         yield();
     }
 }
