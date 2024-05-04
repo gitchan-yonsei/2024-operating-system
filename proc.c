@@ -408,6 +408,9 @@ void scheduler(void)
                     }
                     dequeue(priority);
                     enqueue(p);
+
+                    priority = HIGH - 1;
+                    break;
                 }
 
                 c->proc = 0;
