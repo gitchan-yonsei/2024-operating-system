@@ -382,26 +382,26 @@ void scheduler(void)
 
         if(c0!=-1){
 
-            for(i=0;i<=c0;i++){
-                if(q0[i]->state != RUNNABLE)
+            for (i = 0; i <= c0; i++) {
+                if (q0[i]->state != RUNNABLE)
                     continue;
-                p=q0[i];
+                p = q0[i];
                 mycpu()->proc = q0[i];
                 p->ticks++;
                 switchuvm(p);
                 p->state = RUNNING;
-                swtch(&(mycpu()->scheduler), mycpu()->proc ->context);
+                swtch(&(mycpu()->scheduler), mycpu()->proc->context);
                 switchkvm();
-                if(p->ticks ==clkPerPrio[0]){
+                if (p->ticks == clkPerPrio[0]) {
                     /*copy proc to lower priority queue*/
                     c1++;
-                    mycpu()->proc->priority=mycpu()->proc->priority+1;
+                    mycpu()->proc->priority = mycpu()->proc->priority + 1;
                     q1[c1] = mycpu()->proc;
 
                     /*delete proc from q0*/
-                    q0[i]=0;
-                    for(j=i;j<=c0-1;j++)
-                        q0[j] = q0[j+1];
+                    q0[i] = 0;
+                    for (j = i; j <= c0 - 1; j++)
+                        q0[j] = q0[j + 1];
                     q0[c0] = 0;
                     mycpu()->proc->ticks = 0;
                     c0--;
