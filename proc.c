@@ -400,8 +400,8 @@ void scheduler(void)
                     if (p->priority < LOW) {
                         p->priority++;
                     }
+                    dequeue(priority);
                     enqueue(p);
-//                    i = -1;
                 }
 
                 c->proc = 0;
