@@ -11,6 +11,7 @@
 #define MEDIUM 1
 #define LOW 2
 #define NUM_QUEUES 3
+#define MAX_TICKS 4
 
 struct proc* q0[64];
 struct proc* q1[64];
@@ -118,10 +119,10 @@ allocproc(void)
         }
     }
 
-    p->priority = 0;
-    p->ticks = 0;
-    c0++;
-    q0[c0] = p;
+//    p->priority = 0;
+//    p->ticks = 0;
+//    c0++;
+//    q0[c0] = p;
 
   release(&ptable.lock);
   return 0;
