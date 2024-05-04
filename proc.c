@@ -515,7 +515,7 @@ sleep(void *chan, struct spinlock *lk)
 //PAGEBREAK!
 // Wake up all processes sleeping on chan.
 // The ptable lock must be held.
-static void
+static int
 wakeup1(void *chan)
 {
     struct proc *p;
@@ -526,13 +526,11 @@ wakeup1(void *chan)
             p->state = RUNNABLE;
             p->ticks = 0;
             enqueue(p);
-            flag = 1;
+            return 1;
         }
     }
 
-    if (flag) {
-        yield();
-    }
+    return flag;
 }
 
 // Wake up all processes sleeping on chan.
@@ -540,13 +538,12 @@ void
 wakeup(void *chan)
 {
   acquire(&ptable.lock);
-  wakeup1(chan);
+  int reschedule = wakeup1(chan);
   release(&ptable.lock);
 
-//  struct proc *curproc = myproc();
-//  if (curproc->state == RUNNING) {
-//      yield();
-//  }
+    if (reschedule) {
+        yield();
+    }
 }
 
 // Kill the process with the given pid.
