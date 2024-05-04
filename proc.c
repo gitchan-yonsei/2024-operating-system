@@ -21,16 +21,28 @@ void enqueue(struct proc *p) {
     queue[priority][queue_count[priority]++] = p;
 }
 
+void enqueueFront(struct proc *p) {
+    int priority = p->priority;
+    int count = queue_count[priority];
+
+    for (int i = count; i > 0; i--) {
+        queue[priority][i] = queue[priority][i - 1];
+    }
+
+    queue[priority][0] = p;
+    queue_count[priority]++;
+}
+
 struct proc* dequeue(int priority) {
     if (queue_count[priority] == 0) {
         return 0;
     }
 
     struct proc* p = queue[priority][0];
-    memmove(&queue[priority][0], &queue[priority][1], sizeof(struct proc*) * (queue_count[priority] - 1));
-//    for(int i = 0; i < queue_count[priority] - 1; i++) {
-//        queue[priority][i] = queue[priority][i + 1];
-//    }
+//    memmove(&queue[priority][0], &queue[priority][1], sizeof(struct proc*) * (queue_count[priority] - 1));
+    for(int i = 0; i < queue_count[priority] - 1; i++) {
+        queue[priority][i] = queue[priority][i + 1];
+    }
     queue_count[priority]--;
     return p;
 }
@@ -46,7 +58,7 @@ int nextpid = 1;
 extern void forkret(void);
 extern void trapret(void);
 
-static void wakeup1(void *chan, int *flag);
+static void wakeup1(void *chan);
 
 void
 pinit(void)
@@ -516,7 +528,7 @@ sleep(void *chan, struct spinlock *lk)
 // Wake up all processes sleeping on chan.
 // The ptable lock must be held.
 static void
-wakeup1(void *chan, int *flag)
+wakeup1(void *chan)
 {
     struct proc *p;
 
@@ -524,8 +536,8 @@ wakeup1(void *chan, int *flag)
         if (p->state == SLEEPING && p->chan == chan){
             p->state = RUNNABLE;
             p->ticks = 0;
-            enqueue(p);
-            *flag = 1;
+
+            enqueueFront(p);
         }
     }
 }
@@ -534,14 +546,9 @@ wakeup1(void *chan, int *flag)
 void
 wakeup(void *chan)
 {
-    int schedule_flag = 0;
-  acquire(&ptable.lock);
-  wakeup1(chan, &schedule_flag);
-  release(&ptable.lock);
-
-    if (schedule_flag) {
-        yield();
-    }
+    acquire(&ptable.lock);
+    wakeup1(chan);
+    release(&ptable.lock);
 }
 
 // Kill the process with the given pid.
