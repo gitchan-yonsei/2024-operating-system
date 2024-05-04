@@ -544,7 +544,10 @@ wakeup1(void *chan)
     }
 
     if (flag) {
+        release(&ptable.lock);
+        myproc()->state = RUNNABLE;
         sched();
+        acquire(&ptable.lock);
     }
 }
 
@@ -553,19 +556,7 @@ void
 wakeup(void *chan)
 {
     acquire(&ptable.lock);
-//    wakeup1(chan);
-    struct proc *p;
-//    int flag = 0;
-
-    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
-        if (p->state == SLEEPING && p->chan == chan){
-            p->state = RUNNABLE;
-            p->ticks = 0;
-
-            enqueueFront(p);
-//            flag = 1;
-        }
-    }
+    wakeup1(chan);
     release(&ptable.lock);
 
 //    if (flag) {
