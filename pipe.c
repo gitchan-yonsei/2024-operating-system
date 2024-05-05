@@ -115,7 +115,7 @@ piperead(struct pipe *p, char *addr, int n)
       break;
     addr[i] = p->data[p->nread++ % PIPESIZE];
   }
-  wakeup(&p->nwrite);  //DOC: piperead-wakeup
+  wakeup(&p->nwrite, &p->lock);  //DOC: piperead-wakeup
   release(&p->lock);
   return i;
 }
