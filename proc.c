@@ -537,11 +537,20 @@ wakeup1(void *chan)
 
 // Wake up all processes sleeping on chan.
 void
-wakeup(void *chan)
+wakeup(void *chan, struct spinlock *lk)
 {
   acquire(&ptable.lock);
   wakeup1(chan);
   release(&ptable.lock);
+
+    release(lk);
+    if (myproc()->state == RUNNING) {
+        myproc()->state = RUNNABLE;
+    }
+    acquire(&ptable.lock);
+    sched();
+    release(&ptable.lock);
+    acquire(lk);
 
 //  struct proc *curproc = myproc();
 //  if (curproc->state == RUNNING) {
