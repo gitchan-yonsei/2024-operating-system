@@ -168,7 +168,7 @@ end_op(void)
     commit();
     acquire(&log.lock);
     log.committing = 0;
-    wakeup(&log);
+    wakeup(&log, &log.lock);
     release(&log.lock);
   }
 }
