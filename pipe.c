@@ -62,10 +62,10 @@ pipeclose(struct pipe *p, int writable)
   acquire(&p->lock);
   if(writable){
     p->writeopen = 0;
-    wakeup(&p->nread);
+    wakeup(&p->nread, &p->lock);
   } else {
     p->readopen = 0;
-    wakeup(&p->nwrite);
+    wakeup(&p->nwrite, &p->lock);
   }
   if(p->readopen == 0 && p->writeopen == 0){
     release(&p->lock);
@@ -87,12 +87,12 @@ pipewrite(struct pipe *p, char *addr, int n)
         release(&p->lock);
         return -1;
       }
-      wakeup(&p->nread);
+      wakeup(&p->nread, &p->lock);
       sleep(&p->nwrite, &p->lock);  //DOC: pipewrite-sleep
     }
     p->data[p->nwrite++ % PIPESIZE] = addr[i];
   }
-  wakeup(&p->nread);  //DOC: pipewrite-wakeup1
+  wakeup(&p->nread, &p->lock);  //DOC: pipewrite-wakeup1
   release(&p->lock);
   return n;
 }
