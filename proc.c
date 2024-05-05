@@ -543,14 +543,19 @@ wakeup(void *chan, struct spinlock *lk)
   wakeup1(chan);
   release(&ptable.lock);
 
-    release(lk);
-    acquire(&ptable.lock);
+    if (lk != &ptable.lock) {
+        acquire(&ptable.lock);
+        release(lk);
+    }
     if (myproc()->state == RUNNING) {
         myproc()->state = RUNNABLE;
     }
     sched();
-    release(&ptable.lock);
-    acquire(lk);
+
+    if (lk != &ptable.lock) {
+        release(&ptable.lock);
+        acquire(lk);
+    }
 
 //  struct proc *curproc = myproc();
 //  if (curproc->state == RUNNING) {
