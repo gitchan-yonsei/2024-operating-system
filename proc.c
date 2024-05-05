@@ -539,7 +539,9 @@ wakeup1(void *chan)
 
     if (flag) {
         pushcli();
+        release(&ptable.lock);
         yield();
+        acquire(&ptable.lock);
         popcli();
     }
 }
