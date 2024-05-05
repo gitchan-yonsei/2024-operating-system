@@ -21,6 +21,16 @@ void enqueue(struct proc *p) {
     queue[priority][queue_count[priority]++] = p;
 }
 
+void enqueueFront(struct proc *p) {
+    int priority = p->priority;
+    int count = queue_count[priority];
+    for (int i = count; i > 0; i--) {
+        queue[priority][i] = queue[priority][i - 1];
+    }
+    queue[priority][0] = p;
+    queue_count[priority]++;
+}
+
 struct proc* dequeue(int priority) {
     if (queue_count[priority] == 0) return 0;
     struct proc* p = queue[priority][0];
@@ -520,7 +530,7 @@ wakeup1(void *chan)
             p->ticks = 0;
             p->state = RUNNABLE;
 
-            enqueue(p);
+            enqueueFront(p);
         }
     }
 }
