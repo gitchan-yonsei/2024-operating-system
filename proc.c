@@ -529,7 +529,7 @@ wakeup1(void *chan)
 
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
         if (p->state == SLEEPING && p->chan == chan){
-            p->clicks = 0;
+            p->ticks = 0;
             p->state = RUNNABLE;
             enqueueFront(p);
 
