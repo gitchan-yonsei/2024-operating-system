@@ -313,7 +313,7 @@ exit(void)
     if(p->parent == curproc){
       p->parent = initproc;
       if(p->state == ZOMBIE)
-        wakeup1(initproc, &ptable.lock);
+        wakeup1(initproc);
     }
   }
 
