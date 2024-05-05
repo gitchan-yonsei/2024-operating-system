@@ -539,24 +539,14 @@ wakeup1(void *chan)
 void
 wakeup(void *chan, struct spinlock *lk)
 {
-    acquire(&ptable.lock);
-    wakeup1(chan);
-    release(&ptable.lock);
-
     if (lk != &ptable.lock) {
-        acquire(&ptable.lock);
         release(lk);
     }
-
-    myproc()->chan = chan;
-    myproc()->state = RUNNABLE;
-
-    sched();
-
-    myproc()->chan = 0;
-
+    acquire(&ptable.lock);
+    wakeup1(chan);
+    yield();
+    release(&ptable.lock);
     if (lk != &ptable.lock) {
-        release(&ptable.lock);
         acquire(lk);
     }
 
