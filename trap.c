@@ -62,7 +62,7 @@ trap(struct trapframe *tf)
 //                sched();
 //            }
         }
-      wakeup(&ticks);
+      wakeup(&ticks, &tickslock);
       release(&tickslock);
     }
     lapiceoi();
