@@ -547,7 +547,7 @@ wakeup(void *chan, struct spinlock *lk)
         acquire(&ptable.lock);
         wakeup1(chan);
         sched();
-        release(&ptable);
+        release(&ptable.lock);
         acquire(lk);
     }
 
