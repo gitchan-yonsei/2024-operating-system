@@ -17,6 +17,12 @@
 #include "fcntl.h"
 
 #define MAP_FAILED -1
+#define MAP_PROT_READ 0x00000001
+#define MAP_PROT_WRITE 0x00000002
+#define MAX_MMAP_PER_PROC 4
+#define MAX_MMAP_GLOBAL 16
+
+int global_mmap_count = 0;
 
 // Fetch the nth word-sized system call argument as a file descriptor
 // and return both the descriptor and the corresponding struct file.
@@ -478,6 +484,21 @@ int mmap(struct file* f, int off, int len, int flags)
     if (off % PGSIZE != 0 || len < 0) {
         return MAP_FAILED;
     }
+
+    struct proc *curproc = myproc();
+
+    for (int i = 0; i < MAX_MMAP_PER_PROC; i++) {
+        if (!curproc->mmaps[i].used) {
+            curproc->mmaps[i].file = filedup(f);
+            curproc->mmaps[i].addr = kalloc();
+            curproc->mmaps[i].length = len;
+            curproc->mmaps[i].flags = flags;
+            curproc->mmaps[i].used = 1;
+
+            return (int) curproc->mmaps[i].addr;
+        }
+    }
+
 
     void *mem = kalloc();
     if (!mem) {
