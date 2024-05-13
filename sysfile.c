@@ -525,44 +525,45 @@ mappages(pde_t *pgdir, void *va, uint size, uint pa, int perm)
 
 int mmap(struct file* f, int off, int len, int flags)
 {
-    if (f == 0) {
-        return MAP_FAILED;
-    }
-
-    if (off % PGSIZE != 0 || len < 0) {
-        return MAP_FAILED;
-    }
-
-    void *mem = kalloc();
-    if (!mem) {
-        return MAP_FAILED;
-    }
-
-    if (fileread(f, mem, len) != len) {
-        kfree(mem);
-        return MAP_FAILED;
-    }
-
-    struct proc *curproc = myproc();
-
-    if (curproc->mmap_count >= MAX_MMAP_PER_PROC || global_mmap_count >= MAX_MMAP_GLOBAL) {
-        return MAP_FAILED;
-    }
-
-    int perm = 0;
-    if (flags & MAP_PROT_READ) perm |= PTE_P;
-    if (flags & MAP_PROT_WRITE) perm |= PTE_W;
-
-    if (mappages(curproc->pgdir, (void *) mem, len, V2P(mem), perm) != 0) {
-        kfree(mem);
-        return MAP_FAILED;
-    }
-
-    curproc->mmap_count++;
-    curproc->sz += len;
-    global_mmap_count++;
-
-    return (int) mem;
+    return 1;
+//    if (f == 0) {
+//        return MAP_FAILED;
+//    }
+//
+//    if (off % PGSIZE != 0 || len < 0) {
+//        return MAP_FAILED;
+//    }
+//
+//    void *mem = kalloc();
+//    if (!mem) {
+//        return MAP_FAILED;
+//    }
+//
+//    if (fileread(f, mem, len) != len) {
+//        kfree(mem);
+//        return MAP_FAILED;
+//    }
+//
+//    struct proc *curproc = myproc();
+//
+//    if (curproc->mmap_count >= MAX_MMAP_PER_PROC || global_mmap_count >= MAX_MMAP_GLOBAL) {
+//        return MAP_FAILED;
+//    }
+//
+//    int perm = 0;
+//    if (flags & MAP_PROT_READ) perm |= PTE_P;
+//    if (flags & MAP_PROT_WRITE) perm |= PTE_W;
+//
+//    if (mappages(curproc->pgdir, (void *) mem, len, V2P(mem), perm) != 0) {
+//        kfree(mem);
+//        return MAP_FAILED;
+//    }
+//
+//    curproc->mmap_count++;
+//    curproc->sz += len;
+//    global_mmap_count++;
+//
+//    return (int) mem;
 }
 
 int sys_mmap(void)
