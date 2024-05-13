@@ -502,8 +502,8 @@ int mmap(struct file* f, int off, int len, int flags)
     }
 
     int perm = 0;
-    if (flags & PROT_READ) perm |= PTE_P;
-    if (flags & PROT_WRITE) perm |= PTE_W;
+    if (flags & MAP_PROT_READ) perm |= PTE_P;
+    if (flags & MAP_PROT_WRITE) perm |= PTE_W;
 
     if (mappages(curproc->pgdir, (void *) mem, len, V2P(mem), perm) != 0) {
         kfree(mem);
