@@ -511,6 +511,7 @@ int mmap(struct file* f, int off, int len, int flags)
 //    }
 
     curproc->mmap_count++;
+    curproc->sz += len;
     global_mmap_count++;
 
     return (int) mem;
