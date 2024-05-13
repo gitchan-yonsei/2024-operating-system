@@ -485,21 +485,6 @@ int mmap(struct file* f, int off, int len, int flags)
         return MAP_FAILED;
     }
 
-    struct proc *curproc = myproc();
-
-    for (int i = 0; i < MAX_MMAP_PER_PROC; i++) {
-        if (!curproc->mmaps[i].used) {
-            curproc->mmaps[i].file = filedup(f);
-            curproc->mmaps[i].addr = kalloc();
-            curproc->mmaps[i].length = len;
-            curproc->mmaps[i].flags = flags;
-            curproc->mmaps[i].used = 1;
-
-            return (int) curproc->mmaps[i].addr;
-        }
-    }
-
-
     void *mem = kalloc();
     if (!mem) {
         return MAP_FAILED;
