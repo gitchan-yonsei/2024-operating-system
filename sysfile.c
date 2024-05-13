@@ -469,7 +469,25 @@ int sys_swapwrite(void)
 
 int mmap(struct file* f, int off, int len, int flags)
 {
-	return -1;
+    if (off % PGSIZE != 0 || len < 0) {
+        return -1;
+    }
+
+    void *mem = kalloc();
+    if (!mem) {
+        return -1;
+    }
+
+    ilock(f->ip);
+    int actual = readi(f->ip, mem, off, len);
+    iunlock(f->ip);
+
+    if (actual < 0) {
+        kfree(mem);
+        return -1;
+    }
+
+    return (int) mem;
 }
 
 int sys_mmap(void)
