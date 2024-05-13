@@ -15,6 +15,7 @@
 #include "sleeplock.h"
 #include "file.h"
 #include "fcntl.h"
+#include "memlayout.h"
 
 #define MAP_FAILED -1
 #define MAP_PROT_READ 0x00000001
