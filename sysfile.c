@@ -16,6 +16,8 @@
 #include "file.h"
 #include "fcntl.h"
 
+#define MAP_FAILED -1
+
 // Fetch the nth word-sized system call argument as a file descriptor
 // and return both the descriptor and the corresponding struct file.
 static int
@@ -469,13 +471,17 @@ int sys_swapwrite(void)
 
 int mmap(struct file* f, int off, int len, int flags)
 {
+    if (f == 0) {
+        return MAP_FAILED;
+    }
+
     if (off % PGSIZE != 0 || len < 0) {
-        return -1;
+        return MAP_FAILED;
     }
 
     void *mem = kalloc();
     if (!mem) {
-        return -1;
+        return MAP_FAILED;
     }
 
     ilock(f->ip);
@@ -484,7 +490,7 @@ int mmap(struct file* f, int off, int len, int flags)
 
     if (actual < 0) {
         kfree(mem);
-        return -1;
+        return MAP_FAILED;
     }
 
     return (int) mem;
