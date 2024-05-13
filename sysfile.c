@@ -382,7 +382,7 @@ sys_chdir(void)
   char *path;
   struct inode *ip;
   struct proc *curproc = myproc();
-  
+
   begin_op();
   if(argstr(0, &path) < 0 || (ip = namei(path)) == 0){
     end_op();
@@ -490,14 +490,28 @@ int mmap(struct file* f, int off, int len, int flags)
         return MAP_FAILED;
     }
 
-    ilock(f->ip);
-    int actual = readi(f->ip, mem, off, len);
-    iunlock(f->ip);
-
-    if (actual < 0) {
+    if (fileread(f, mem, len) != len) {
         kfree(mem);
         return MAP_FAILED;
     }
+
+    struct proc *curproc = myproc();
+
+    if (curproc->mmap_count >= MAX_MMAP_PER_PROC || global_mmap_count >= MAX_MMAP_GLOBAL) {
+        return MAP_FAILED;
+    }
+
+    int perm = 0;
+    if (flags & PROT_READ) perm |= PTE_P;
+    if (flags & PROT_WRITE) perm |= PTE_W;
+
+    if (mappages(curproc->pgdir, (void *) mem, len, V2P(mem), perm) != 0) {
+        kfree(mem);
+        return MAP_FAILED;
+    }
+
+    curproc->mmap_count++;
+    global_mmap_count++;
 
     return (int) mem;
 }
@@ -506,7 +520,7 @@ int sys_mmap(void)
 {
 	struct file *f;
 	int off, len, flags;
-	if ( argfd(0, 0, &f) < 0 || argint(1, &off) < 0 || 
+	if ( argfd(0, 0, &f) < 0 || argint(1, &off) < 0 ||
 			argint(2, &len) < 0 || argint(3, &flags) < 0 )
 		return -1;
 	return mmap(f, off, len, flags);
