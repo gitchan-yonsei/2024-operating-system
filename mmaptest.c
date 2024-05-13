@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
     write(fd, "Hello, xv6!", 12);
 
     // mmap() 호출
-    memory = mmap(fd, 0, 4096, MAP_PROT_READ | MAP_PROT_WRITE);
+    memory = mmap(fd, 0, 12, MAP_PROT_READ | MAP_PROT_WRITE);
     if (memory == (char *) -1) {
         printf(1, "mmap failed\n");
         exit();
