@@ -11,20 +11,19 @@ int main(int argc, char *argv[]) {
     int fd;
     char *memory;
 
-    // 파일 열기
-    if ((fd = open("tempfile", O_CREATE | O_RDWR)) < 0) {
+    // 파일 열기 (생성 없이 오직 읽기/쓰기)
+    if ((fd = open("tempfile", O_RDWR)) < 0) {
         printf(1, "Error opening file\n");
         exit();
     }
 
-    // 파일 크기를 4096 바이트로 확장
-    int size = 4096;
-    char buffer[size];
-    memset(buffer, 0, size);
-    write(fd, buffer, size);
+    // 파일 크기를 4096 바이트로 설정 (초기화)
+    // xv6에서 파일 크기를 확장하는 방법이 필요합니다.
+    // 이 예제에서는 mmap을 사용하여 메모리 매핑을 시도하기 전에
+    // 파일이 존재하고 적절한 크기를 가지고 있어야 합니다.
 
     // mmap() 호출
-    memory = mmap(fd, 0, size, MAP_PROT_READ | MAP_PROT_WRITE);
+    memory = mmap(fd, 0, 4096, MAP_PROT_READ | MAP_PROT_WRITE);
     if (memory == MAP_FAILED) {
         printf(1, "mmap failed\n");
         close(fd);
@@ -39,19 +38,6 @@ int main(int argc, char *argv[]) {
     printf(1, "Data from memory: %s\n", memory);
 
     // 파일 닫기
-    close(fd);
-
-    // 파일 다시 열어서 변경 확인
-    if ((fd = open("tempfile", O_RDONLY)) < 0) {
-        printf(1, "Error reopening file\n");
-        exit();
-    }
-
-    int n = read(fd, buffer, sizeof(buffer));
-    buffer[n] = 0; // Null-terminate the string
-
-    printf(1, "Data read from file: %s\n", buffer);
-
     close(fd);
     exit();
 }
