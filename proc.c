@@ -7,6 +7,40 @@
 #include "proc.h"
 #include "spinlock.h"
 
+#define HIGH 0
+#define MEDIUM 1
+#define LOW 2
+#define NUM_QUEUES 3
+#define MAX_TICKS 4
+
+struct proc *queue[NUM_QUEUES][NPROC];  // Process queues for each priority level
+int queue_count[NUM_QUEUES] = {0};      // Number of processes in each queue
+
+void enqueue(struct proc *p) {
+    int priority = p->priority;
+    queue[priority][queue_count[priority]++] = p;
+}
+
+void enqueueFront(struct proc *p) {
+    int priority = p->priority;
+    int count = queue_count[priority];
+    for (int i = count; i > 0; i--) {
+        queue[priority][i] = queue[priority][i - 1];
+    }
+    queue[priority][0] = p;
+    queue_count[priority]++;
+}
+
+struct proc* dequeue(int priority) {
+    if (queue_count[priority] == 0) return 0;
+    struct proc* p = queue[priority][0];
+    for(int i = 0; i < queue_count[priority] - 1; i++) {
+        queue[priority][i] = queue[priority][i + 1];
+    }
+    queue_count[priority]--;
+    return p;
+}
+
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
@@ -38,10 +72,10 @@ struct cpu*
 mycpu(void)
 {
   int apicid, i;
-  
+
   if(readeflags()&FL_IF)
     panic("mycpu called with interrupts enabled\n");
-  
+
   apicid = lapicid();
   // APIC IDs are not guaranteed to be contiguous. Maybe we should have
   // a reverse map, or reserve a register to store &cpus[i].
@@ -78,9 +112,15 @@ allocproc(void)
 
   acquire(&ptable.lock);
 
-  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
-    if(p->state == UNUSED)
-      goto found;
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+        if (p->state == UNUSED) {
+            goto found;
+        }
+    }
+
+    p->priority = HIGH;
+    p->ticks = 0;
+    enqueue(p);
 
   release(&ptable.lock);
   return 0;
@@ -88,6 +128,9 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
+  p->priority = HIGH;
+  p->ticks = 0;
+  enqueue(p);
 
   release(&ptable.lock);
 
@@ -124,7 +167,7 @@ userinit(void)
   extern char _binary_initcode_start[], _binary_initcode_size[];
 
   p = allocproc();
-  
+
   initproc = p;
   if((p->pgdir = setupkvm()) == 0)
     panic("userinit: out of memory?");
@@ -219,6 +262,16 @@ fork(void)
 
   np->state = RUNNABLE;
 
+  np->priority = HIGH;
+  np->ticks = 0;
+  enqueue(np);
+
+    if (myproc()->state == RUNNING) {
+        myproc()->state = RUNNABLE;
+    }
+
+    sched();
+
   release(&ptable.lock);
 
   return pid;
@@ -278,7 +331,7 @@ wait(void)
   struct proc *p;
   int havekids, pid;
   struct proc *curproc = myproc();
-  
+
   acquire(&ptable.lock);
   for(;;){
     // Scan through table looking for exited children.
@@ -322,41 +375,52 @@ wait(void)
 //  - swtch to start running that process
 //  - eventually that process transfers control
 //      via swtch back to the scheduler.
-void
-scheduler(void)
+void scheduler(void)
 {
-  struct proc *p;
-  struct cpu *c = mycpu();
-  c->proc = 0;
-  
-  for(;;){
-    // Enable interrupts on this processor.
-    sti();
 
-    // Loop over process table looking for process to run.
-    acquire(&ptable.lock);
-    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      if(p->state != RUNNABLE)
-        continue;
+    struct proc *p;
+    int i, priority;
+    struct cpu* c = mycpu();
 
-      // Switch to chosen process.  It is the process's job
-      // to release ptable.lock and then reacquire it
-      // before jumping back to us.
-      c->proc = p;
-      switchuvm(p);
-      p->state = RUNNING;
+    for(;;){
+        // Enable interrupts on this processor.
+        sti();
 
-      swtch(&(c->scheduler), p->context);
-      switchkvm();
+        // Loop over process table looking for process to run.
+        acquire(&ptable.lock);
 
-      // Process is done running for now.
-      // It should have changed its p->state before coming back.
-      c->proc = 0;
+        for (priority = HIGH; priority <= LOW; priority++) {
+            for (i = 0; i < queue_count[priority]; i++) {
+                p = queue[priority][i];
+
+                if (p->state != RUNNABLE) {
+                    continue;
+                }
+
+                c->proc = p;
+                p->ticks++;
+                switchuvm(p);
+                p->state = RUNNING;
+                swtch(&(c->scheduler), c->proc->context);
+                switchkvm();
+
+                if (p->ticks == MAX_TICKS) {
+                    p->ticks = 0;
+                    p->state = RUNNABLE;
+                    if (p->priority < LOW) {
+                        p->priority++;
+                    }
+                    dequeue(priority);
+                    enqueue(p);
+                }
+
+                c->proc = 0;
+            }
+        }
+        release(&ptable.lock);
     }
-    release(&ptable.lock);
-
-  }
 }
+        
 
 // Enter scheduler.  Must hold only ptable.lock
 // and have changed proc->state. Saves and restores
@@ -421,7 +485,7 @@ void
 sleep(void *chan, struct spinlock *lk)
 {
   struct proc *p = myproc();
-  
+
   if(p == 0)
     panic("sleep");
 
@@ -460,11 +524,15 @@ sleep(void *chan, struct spinlock *lk)
 static void
 wakeup1(void *chan)
 {
-  struct proc *p;
+    struct proc *p;
 
-  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
-    if(p->state == SLEEPING && p->chan == chan)
-      p->state = RUNNABLE;
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+        if (p->state == SLEEPING && p->chan == chan){
+            p->ticks = 0;
+            p->state = RUNNABLE;
+            enqueueFront(p);
+        }
+    }
 }
 
 // Wake up all processes sleeping on chan.
@@ -474,6 +542,11 @@ wakeup(void *chan)
   acquire(&ptable.lock);
   wakeup1(chan);
   release(&ptable.lock);
+
+//  struct proc *curproc = myproc();
+//  if (curproc->state == RUNNING) {
+//      yield();
+//  }
 }
 
 // Kill the process with the given pid.
@@ -581,7 +654,7 @@ ps() {
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
         int stateNumber = state(p->state);
         if (stateNumber == 2 || stateNumber == 3 || stateNumber == 4 || stateNumber == 5) {
-            cprintf("%s \t %d \t %d \t %d \t %d \n ", p->name, p->pid, stateNumber, p->priority, p->ticks);
+            cprintf("%s \t %d \t %d \t %d \t %d \n ", p->name, p->pid, stateNumber, p->nice, p->ticks);
         }
     }
 
