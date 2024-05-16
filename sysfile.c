@@ -13,6 +13,7 @@
 #include "fs.h"
 #include "spinlock.h"
 #include "sleeplock.h"
+#include "memlayout.h"
 #include "file.h"
 #include "fcntl.h"
 
@@ -469,7 +470,88 @@ int sys_swapwrite(void)
 
 int mmap(struct file* f, int off, int len, int flags)
 {
-	return -1;
+    struct proc *curproc = myproc();
+    void *addr = 0;
+
+    if (length <= 0 || offset % PGSIZE != 0) {
+        return MAP_FAILED;
+    }
+
+    if ((flags & (MAP_PROT_READ | MAP_PROT_WRITE)) == 0) {
+        return MAP_FAILED;
+    }
+
+    if (!f->readable) {
+        return MAP_FAILED;
+    }
+
+    if (f == 0) {
+        return MAP_FAILED;
+    }
+
+    // processes does not mmap the same file simultaneously
+    for (int i = 0; i < MAX_MMAP_AREAS; i++) {
+        struct mmap_area *r = curproc->mmap_areas[i];
+        if (!r->valid && r->file == f) {
+            return MAP_FAILED;
+        }
+    }
+
+    // kernel base 아래에 할당
+    int roundedPages = PGROUNDUP(len);
+    int pagesNum = roundedPages / PGSIZE;
+    addr = KERNBASE - PGSIZE * pagesNum;
+
+    while(addr >= curproc->sz) {
+        int overlapped = 0;
+
+        for (int i = 0; i < MAX_MMAP_AREAS; i++) {
+            if (curproc->mmap_areas[i].valid) {
+                continue;
+            }
+            if ((addr >= curproc->mmap_areas[i].start &&
+                 addr < curproc->mmap_areas[i].start + PGSIZE * (curproc->mmap_areas[i].pageCount - 1))) {
+                overlapped = 1;
+                break;
+            }
+
+            if (curproc->mmap_areas[i].start >= addr &&
+                curproc->mmap_areas[i].start < addr + PGSIZE * (pagesNum - 1)) {
+                overlapped = 1;
+                break;
+            }
+        }
+
+        if (!overlapped) {
+            break;
+        }
+        addr -= PGSIZE;
+    }
+
+    // Find an available mmap_area slot
+//    int i;
+//    for (i = 0; i < MAX_MMAP_AREAS; i++) {
+//        if (curproc->mmap_areas[i].start == 0) {
+//            break;
+//        }
+//    }
+//    if (i == MAX_MMAP_AREAS) {
+//        return MAP_FAILED;
+//    }
+
+
+    // Find a free address space for the mapping
+    addr = (void *)(curproc->sz);
+    curproc->sz += length;
+
+    // Setup mmap_area
+    curproc->mmap_areas[i].start = addr;
+    curproc->mmap_areas[i].length = length;
+    curproc->mmap_areas[i].prot = prot;
+    curproc->mmap_areas[i].file = f;
+    curproc->mmap_areas[i].offset = offset;
+
+    return addr;
 }
 
 int sys_mmap(void)

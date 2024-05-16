@@ -45,6 +45,8 @@ struct mmap_area {
     int prot;
     struct file *file;
     int offset;
+    int valid;
+    int pageCount;
 };
 
 enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
