@@ -579,7 +579,7 @@ int mmap(struct file* f, int off, int len, int flags)
             *pte = 0;
         }
     }
-    return (void *) -1;
+    return MAP_FAILED;
 }
 
 int sys_mmap(void)
