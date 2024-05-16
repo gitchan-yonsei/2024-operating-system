@@ -541,7 +541,7 @@ int mmap(struct file* f, int off, int len, int flags)
 
     // Ensure we don't exceed process's maximum memory size
     if (last >= KERNBASE) {
-        return -1;
+        return MAP_FAILED;
     }
 
     for (; a < last; a += PGSIZE) {
@@ -554,6 +554,13 @@ int mmap(struct file* f, int off, int len, int flags)
             goto fail;
         }
     }
+
+    ilock(f->ip);
+    if (readi(f->ip, (char *)a, off, len) != len) {
+        iunlock(f->ip);
+        goto fail;
+    }
+    iunlock(f->ip);
 
     return a;
 
