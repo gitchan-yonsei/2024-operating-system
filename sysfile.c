@@ -518,22 +518,16 @@ mappages(pde_t *pgdir, void *va, uint size, uint pa, int perm)
 int mmap(struct file* f, int off, int len, int flags)
 {
     struct proc *p = myproc();
-//    void *addr = 0;
 
     if (len <= 0 || off % PGSIZE != 0) {
         return MAP_FAILED;
     }
 
-
     if ((flags & (MAP_PROT_READ | MAP_PROT_WRITE)) == 0) {
         return MAP_FAILED;
     }
 
-    if (f == 0) {
-        return MAP_FAILED;
-    }
-
-    if (!f->readable) {
+    if (f == 0 || !f->readable || (flags & MAP_PROT_WRITE && !f->writable)) {
         return MAP_FAILED;
     }
 
@@ -561,12 +555,6 @@ int mmap(struct file* f, int off, int len, int flags)
         }
     }
 
-//    ilock(f->ip);
-//    if (readi(f->ip, (char *)a, off, len) != len) {
-//        iunlock(f->ip);
-//        goto fail;
-//    }
-//    iunlock(f->ip);
 
     return a;
 
