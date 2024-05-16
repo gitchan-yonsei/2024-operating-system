@@ -589,7 +589,7 @@ int sys_mmap(void)
 	return mmap(f, off, len, flags);
 }
 
-int munmap(void* ptr, int length)
+int munmap(void* addr, int length)
 {
     struct proc *p = myproc();
     uint a, last;
