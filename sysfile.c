@@ -555,15 +555,9 @@ int mmap(struct file* f, int off, int len, int flags)
         }
     }
 
-    if (fileread(f, (char *) a, len) != last) {
+    if (fileread(f, (char *) a, len) != len) {
         panic("can not read file!");
     }
-//    ilock(f->ip);
-//    if (readi(f->ip, (char *)a, off, len) != len) {
-//        iunlock(f->ip);
-//        goto fail;
-//    }
-//    iunlock(f->ip);
 
     return a;
 
