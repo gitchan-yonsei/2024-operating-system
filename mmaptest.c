@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
     int fd;
     char *memory;
 
-    if ((fd = open("tempfile", O_CREATE | O_RDWR)) < 0) {
+    if ((fd = open("README", O_CREATE | O_RDWR)) < 0) {
         printf(1, "Error opening file\n");
         exit();
     }

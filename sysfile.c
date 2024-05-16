@@ -555,7 +555,6 @@ int mmap(struct file* f, int off, int len, int flags)
         }
     }
 
-
     return a;
 
     fail:
