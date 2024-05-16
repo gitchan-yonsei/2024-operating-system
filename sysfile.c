@@ -526,7 +526,7 @@ mappages(pde_t *pgdir, void *va, uint size, uint pa, int perm)
 int mmap(struct file* f, int off, int len, int flags)
 {
     struct proc *curproc = myproc();
-    uint addr;
+    void* addr;
 
     if (curproc->mmap_count >= MAX_MMAP_PER_PROC || global_mmap_count >= MAX_MMAP_GLOBAL) {
         cprintf("%s", "curproc->mmap_count >= MAX_MMAP_PER_PROC || global_mmap_count >= MAX_MMAP_GLOBAL");
