@@ -15,6 +15,7 @@
 #include "sleeplock.h"
 #include "file.h"
 #include "fcntl.h"
+#include "memlayout.h"
 
 // Fetch the nth word-sized system call argument as a file descriptor
 // and return both the descriptor and the corresponding struct file.
@@ -467,14 +468,62 @@ int sys_swapwrite(void)
 	return 0;
 }
 
+pte_t *
+walkpgdir(pde_t *pgdir, const void *va, int alloc)
+{
+    pde_t *pde;
+    pte_t *pgtab;
+
+    pde = &pgdir[PDX(va)];
+    if(*pde & PTE_P){
+        pgtab = (pte_t*)P2V(PTE_ADDR(*pde));
+    } else {
+        if(!alloc || (pgtab = (pte_t*)kalloc()) == 0)
+            return 0;
+        // Make sure all those PTE_P bits are zero.
+        memset(pgtab, 0, PGSIZE);
+        // The permissions here are overly generous, but they can
+        // be further restricted by the permissions in the page table
+        // entries, if necessary.
+        *pde = V2P(pgtab) | PTE_P | PTE_W | PTE_U;
+    }
+    return &pgtab[PTX(va)];
+}
+
+// Create PTEs for virtual addresses starting at va that refer to
+// physical addresses starting at pa. va and size might not
+// be page-aligned.
+int
+mappages(pde_t *pgdir, void *va, uint size, uint pa, int perm)
+{
+    char *a, *last;
+    pte_t *pte;
+
+    a = (char*)PGROUNDDOWN((uint)va);
+    last = (char*)PGROUNDDOWN(((uint)va) + size - 1);
+    for(;;){
+        if((pte = walkpgdir(pgdir, a, 1)) == 0)
+            return -1;
+        if(*pte & PTE_P)
+            panic("remap");
+        *pte = pa | perm | PTE_P;
+        if(a == last)
+            break;
+        a += PGSIZE;
+        pa += PGSIZE;
+    }
+    return 0;
+}
+
 int mmap(struct file* f, int off, int len, int flags)
 {
-//    struct proc *curproc = myproc();
-//    void *addr = 0;
+    struct proc *p = myproc();
+    void *addr = 0;
 
     if (len <= 0 || off % PGSIZE != 0) {
         return MAP_FAILED;
     }
+
 
     if ((flags & (MAP_PROT_READ | MAP_PROT_WRITE)) == 0) {
         return MAP_FAILED;
@@ -488,7 +537,49 @@ int mmap(struct file* f, int off, int len, int flags)
         return MAP_FAILED;
     }
 
-    return -1;
+    uint a, last;
+    pte_t *pte;
+    char *mem;
+
+    // Find a free region in the process's address space
+    a = PGROUNDUP(p->sz);
+    last = a + length;
+
+    // Ensure we don't exceed process's maximum memory size
+    if (last >= KERNBASE) {
+        return (void *) -1;
+    }
+
+    for (; a < last; a += PGSIZE) {
+        if ((mem = kalloc()) == 0) {
+            goto fail;
+        }
+        memset(mem, 0, PGSIZE);
+        if (mappages(p->pgdir, (char *)a, PGSIZE, V2P(mem), PTE_W | PTE_U) < 0) {
+            kfree(mem);
+            goto fail;
+        }
+    }
+
+    ilock(f->ip);
+    if (readi(f->ip, (char *)a, offset, length) != length) {
+        iunlock(f->ip);
+        goto fail;
+    }
+    iunlock(f->ip);
+
+    return (void *)a;
+
+    fail:
+    // Unmap and free any allocated pages
+    for (uint pa = PGROUNDUP(p->sz); pa < a; pa += PGSIZE) {
+        if ((pte = walkpgdir(p->pgdir, (void *)pa, 0)) && (*pte & PTE_P)) {
+            mem = P2V(PTE_ADDR(*pte));
+            kfree(mem);
+            *pte = 0;
+        }
+    }
+    return (void *) -1;
 }
 
 int sys_mmap(void)
