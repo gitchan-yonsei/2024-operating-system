@@ -32,7 +32,7 @@ struct context {
   uint eip;
 };
 
-#define MAP_FAILED ((void *) -1)
+#define MAP_FAILED -1
 #define MAP_PROT_READ 0x00000001
 #define MAP_PROT_WRITE 0x00000002
 
