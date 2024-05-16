@@ -546,12 +546,11 @@ int mmap(struct file* f, int off, int len, int flags)
         return MAP_FAILED;
     }
 
-    if (fileread(f, mem, len) != len) {
+    if (fileread(f, mem, len) < 0) {
         kfree(mem);
-        cprintf("%s", "fileread(f, mem, len) != len");
+        cprintf("%s", "fileread(f, mem, len) < 0");
         return MAP_FAILED;
     }
-
 
     int perm = 0;
     if (flags & MAP_PROT_READ) perm |= PTE_P;
