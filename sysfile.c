@@ -17,7 +17,7 @@
 #include "fcntl.h"
 #include "memlayout.h"
 
-#define MAP_FAILED ((void *) -1)
+#define MAP_FAILED -1
 #define MAP_PROT_READ 0x00000001
 #define MAP_PROT_WRITE 0x00000002
 #define MAX_MMAP_PER_PROC 4
@@ -556,18 +556,18 @@ int mmap(struct file* f, int off, int len, int flags)
 
     for (int a = addr; a < addr + len; a += PGSIZE) {
         char *mem = kalloc();
-        if (mem == 0) {
-            for (int b = addr; b < a; b += PGSIZE) {
-                uvmunmap(p->pagetable, b, 1);
-            }
+        if (!mem) {
+            kfree(mem);
             return MAP_FAILED;
         }
         memset(mem, 0, PGSIZE);
-        if (mappages(p->pagetable, a, PGSIZE, (uint64)mem, PTE_W | PTE_U) < 0) {
+
+        int perm = 0;
+        if (flags & MAP_PROT_READ) perm |= PTE_P;
+        if (flags & MAP_PROT_WRITE) perm |= PTE_W;
+
+        if (mappages(curproc->pgdir, addr, len, (V2P())mem, perm) != 0) {
             kfree(mem);
-            for (int b = addr; b < a; b += PGSIZE) {
-                uvmunmap(p->pagetable, b, 1);
-            }
             return MAP_FAILED;
         }
     }
@@ -575,7 +575,7 @@ int mmap(struct file* f, int off, int len, int flags)
     for (int i = 0; i < MAX_MMAP_PER_PROC; i++) {
         if (!curproc->mmaps[i].valid) {
             curproc->mmaps[i].valid = 1;
-            curproc->mmaps[i].addr = mem;
+            curproc->mmaps[i].addr = addr;
             curproc->mmaps[i].length = len;
             curproc->mmaps[i].flags = flags;
             curproc->mmaps[i].file = f;
