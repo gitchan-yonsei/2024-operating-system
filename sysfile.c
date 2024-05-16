@@ -549,7 +549,7 @@ int mmap(struct file* f, int off, int len, int flags)
             goto fail;
         }
         memset(mem, 0, PGSIZE);
-        if (mappages(p->pgdir, (char *)a, PGSIZE, V2P(mem), PTE_W | PTE_U) < 0) {
+        if (mappages(p->pgdir, (char *)a, PGSIZE, V2P(mem), PTE_W | PTE_U | PTE_P) < 0) {
             kfree(mem);
             goto fail;
         }
