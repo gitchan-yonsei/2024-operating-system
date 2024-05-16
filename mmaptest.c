@@ -19,8 +19,11 @@ int main(int argc, char *argv[]) {
     // 파일에 데이터를 쓰기 (예: 초기화)
     write(fd, "Hello, xv6!", 12);
 
+    printf(1, "frees (old): %d\n", frees());
     // mmap() 호출
     memory = mmap(fd, 0, 4096, MAP_PROT_READ | MAP_PROT_WRITE);
+
+    printf(1, "frees (new): %d\n", frees());
     if (memory == (char *) -1) {
         printf(1, "mmap failed\n");
         exit();
