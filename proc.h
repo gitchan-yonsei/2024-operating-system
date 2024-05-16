@@ -39,6 +39,14 @@ struct context {
 #define MAX_MMAP_AREAS 4
 #define MAX_SYSTEM_MMAP_AREAS 16
 
+struct mmap_region {
+    void *addr;
+    int length;
+    struct file *file;
+    int offset;
+    int flags;
+};
+
 enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 
 // Per-process state
