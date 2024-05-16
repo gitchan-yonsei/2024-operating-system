@@ -589,9 +589,35 @@ int sys_mmap(void)
 	return mmap(f, off, len, flags);
 }
 
-int munmap(void* ptr, int len)
+int munmap(void* ptr, int length)
 {
-	return -1;
+    struct proc *p = myproc();
+    uint a, last;
+    pte_t *pte;
+    char *mem;
+
+    if ((uint)addr % PGSIZE != 0 || length <= 0) {
+        return MAP_FAILED;
+    }
+
+    a = (uint)addr;
+    last = a + length;
+
+    for (; a < last; a += PGSIZE) {
+        if ((pte = walkpgdir(p->pgdir, (char *)a, 0)) && (*pte & PTE_P)) {
+            mem = P2V(PTE_ADDR(*pte));
+            kfree(mem);
+            *pte = 0;
+        } else {
+            // If there's no mapping in the specified address range, return 0
+            return 0;
+        }
+    }
+
+    // Free page frames in the unmapped memory
+    lcr3(V2P(p->pgdir));  // Flush TLB
+
+    return 0;
 }
 
 int sys_munmap(void)
