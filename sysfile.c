@@ -17,6 +17,8 @@
 #include "fcntl.h"
 #include "memlayout.h"
 
+int mmap_count = 0;
+
 // Fetch the nth word-sized system call argument as a file descriptor
 // and return both the descriptor and the corresponding struct file.
 static int
@@ -519,6 +521,10 @@ int mmap(struct file* f, int off, int len, int flags)
 {
     struct proc *p = myproc();
 
+    if (p->mmap_count >= MAX_MMAP_AREAS || mmap_count >= MAX_SYSTEM_MMAP_AREAS) {
+        return MAP_FAILED;
+    }
+
     if (len <= 0 || off % PGSIZE != 0) {
         return MAP_FAILED;
     }
@@ -591,33 +597,7 @@ int sys_mmap(void)
 
 int munmap(void* addr, int length)
 {
-    struct proc *p = myproc();
-    uint a, last;
-    pte_t *pte;
-    char *mem;
-
-    if ((uint)addr % PGSIZE != 0 || length <= 0) {
-        return MAP_FAILED;
-    }
-
-    a = (uint)addr;
-    last = a + length;
-
-    for (; a < last; a += PGSIZE) {
-        if ((pte = walkpgdir(p->pgdir, (char *)a, 0)) && (*pte & PTE_P)) {
-            mem = P2V(PTE_ADDR(*pte));
-            kfree(mem);
-            *pte = 0;
-        } else {
-            // If there's no mapping in the specified address range, return 0
-            return 0;
-        }
-    }
-
-    // Free page frames in the unmapped memory
-    lcr3(V2P(p->pgdir));  // Flush TLB
-
-    return 0;
+    return -1;
 }
 
 int sys_munmap(void)
