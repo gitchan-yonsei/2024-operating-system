@@ -32,6 +32,13 @@ struct context {
   uint eip;
 };
 
+#define MAP_FAILED ((void *) -1)
+#define MAP_PROT_READ 0x00000001
+#define MAP_PROT_WRITE 0x00000002
+
+#define MAX_MMAP_AREAS 4
+#define MAX_SYSTEM_MMAP_AREAS 16
+
 enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 
 // Per-process state
