@@ -537,9 +537,20 @@ int mmap(struct file* f, int off, int len, int flags)
         return MAP_FAILED;
     }
 
+    if ((flags & (MAP_PROT_READ | MAP_PROT_WRITE)) == 0) {
+        return MAP_FAILED;
+    }
+
     if (off % PGSIZE != 0 || len <= 0) {
         cprintf("%s", "off % PGSIZE != 0 || len <= 0");
         return MAP_FAILED;
+    }
+
+    // processes does not mmap the same file simultaneously
+    for (int i = 0; i < MAX_MMAP_PER_PROC; i++) {
+        if (curproc->mmaps[i].file == f) {
+            return MAP_FAILED;
+        }
     }
 
     void *mem = kalloc();
