@@ -638,7 +638,7 @@ int munmap(void* addr, int length)
         if ((pte = walkpgdir(p->pgdir, (char *)a, 0)) && (*pte & PTE_P)) {
             mem = P2V(PTE_ADDR(*pte));
             // If the page is dirty, write back to the file
-            if (*pte & PTE_D) {
+            if (*pte & PTE_P) {
                 struct file *f = p->mmap_regions[found].file;
                 int offset = p->mmap_regions[found].offset + (a - (uint)p->mmap_regions[found].addr);
                 filewrite(f, (char *)a, offset);
