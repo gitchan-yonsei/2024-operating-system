@@ -543,7 +543,7 @@ int mmap(struct file* f, int off, int len, int flags)
 
     // Find a free region in the process's address space
     a = PGROUNDUP(p->sz);
-    last = a + length;
+    last = a + len;
 
     // Ensure we don't exceed process's maximum memory size
     if (last >= KERNBASE) {
@@ -562,7 +562,7 @@ int mmap(struct file* f, int off, int len, int flags)
     }
 
     ilock(f->ip);
-    if (readi(f->ip, (char *)a, offset, length) != length) {
+    if (readi(f->ip, (char *)a, off, len) != len) {
         iunlock(f->ip);
         goto fail;
     }
