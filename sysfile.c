@@ -469,10 +469,10 @@ int sys_swapwrite(void)
 
 int mmap(struct file* f, int off, int len, int flags)
 {
-    struct proc *curproc = myproc();
-    void *addr = 0;
+//    struct proc *curproc = myproc();
+//    void *addr = 0;
 
-    if (length <= 0 || offset % PGSIZE != 0) {
+    if (len <= 0 || off % PGSIZE != 0) {
         return MAP_FAILED;
     }
 
@@ -480,11 +480,11 @@ int mmap(struct file* f, int off, int len, int flags)
         return MAP_FAILED;
     }
 
-    if (!f->readable) {
+    if (f == 0) {
         return MAP_FAILED;
     }
 
-    if (f == 0) {
+    if (!f->readable) {
         return MAP_FAILED;
     }
 
