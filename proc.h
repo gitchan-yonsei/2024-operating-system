@@ -33,12 +33,12 @@ struct context {
 };
 
 struct mmap_area {
+    int valid;
     void* addr;
     int length;
     int flags;
     struct file* file;
     struct proc *proc;
-    int used;
 };
 
 enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
