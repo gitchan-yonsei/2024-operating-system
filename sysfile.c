@@ -561,6 +561,11 @@ int mmap(struct file* f, int off, int len, int flags)
         }
     }
 
+    f->off = off;
+    if (fileread(f, (char *) a, len) != len) {
+        goto fail;
+    }
+
 //    if (fileread(f, (char *) a, len) != len) {
 //        panic("can not read file!");
 //    }
@@ -570,6 +575,12 @@ int mmap(struct file* f, int off, int len, int flags)
 //        goto fail;
 //    }
 //    iunlock(f->ip);
+
+    p->mmap_regions[p->mmap_count].addr = a;
+    p->mmap_regions[p->mmap_count].length = len;
+    p->mmap_regions[p->mmap_count].file = f;
+    p->mmap_regions[p->mmap_count].offset = off;
+    p->mmap_regions[p->mmap_count].flags = flags;
 
     return a;
 
