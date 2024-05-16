@@ -548,9 +548,9 @@ int mmap(struct file* f, int off, int len, int flags)
         return MAP_FAILED;
     }
 
-    if (fileread(f, mem, len) < 0) {
+    if (fileread(f, mem, len) != len) {
         kfree(mem);
-        cprintf("%s", "fileread(f, mem, len) < 0");
+        cprintf("%s", "fileread(f, mem, len) != len");
         return MAP_FAILED;
     }
 
