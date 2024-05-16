@@ -518,7 +518,7 @@ mappages(pde_t *pgdir, void *va, uint size, uint pa, int perm)
 int mmap(struct file* f, int off, int len, int flags)
 {
     struct proc *p = myproc();
-    void *addr = 0;
+//    void *addr = 0;
 
     if (len <= 0 || off % PGSIZE != 0) {
         return MAP_FAILED;
@@ -547,7 +547,7 @@ int mmap(struct file* f, int off, int len, int flags)
 
     // Ensure we don't exceed process's maximum memory size
     if (last >= KERNBASE) {
-        return (void *) -1;
+        return -1;
     }
 
     for (; a < last; a += PGSIZE) {
@@ -568,7 +568,7 @@ int mmap(struct file* f, int off, int len, int flags)
     }
     iunlock(f->ip);
 
-    return (void *)a;
+    return a;
 
     fail:
     // Unmap and free any allocated pages
