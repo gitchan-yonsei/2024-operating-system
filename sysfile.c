@@ -17,7 +17,7 @@
 #include "fcntl.h"
 #include "memlayout.h"
 
-#define MAP_FAILED -1
+#define MAP_FAILED ((void *) -1)
 #define MAP_PROT_READ 0x00000001
 #define MAP_PROT_WRITE 0x00000002
 #define MAX_MMAP_PER_PROC 4
@@ -526,18 +526,14 @@ mappages(pde_t *pgdir, void *va, uint size, uint pa, int perm)
 int mmap(struct file* f, int off, int len, int flags)
 {
     struct proc *curproc = myproc();
+    uint addr;
 
     if (curproc->mmap_count >= MAX_MMAP_PER_PROC || global_mmap_count >= MAX_MMAP_GLOBAL) {
         cprintf("%s", "curproc->mmap_count >= MAX_MMAP_PER_PROC || global_mmap_count >= MAX_MMAP_GLOBAL");
         return MAP_FAILED;
     }
 
-    if (f == 0) {
-        cprintf("%s", "f == 0");
-        return MAP_FAILED;
-    }
-
-    if ((flags & (MAP_PROT_READ | MAP_PROT_WRITE)) == 0) {
+    if (!f) {
         return MAP_FAILED;
     }
 
@@ -546,33 +542,34 @@ int mmap(struct file* f, int off, int len, int flags)
         return MAP_FAILED;
     }
 
-    // processes does not mmap the same file simultaneously
-    for (int i = 0; i < MAX_MMAP_PER_PROC; i++) {
-        if (curproc->mmaps[i].file == f) {
-            return MAP_FAILED;
+    // Find space for new mapping
+    for (int i = 0; i < NOFILE; i++) {
+        if (!curproc->mmaps[i].valid) {
+            break;
         }
     }
-
-    void *mem = kalloc();
-    if (!mem) {
-        cprintf("%s", "!mem");
+    if (i == NOFILE) {
         return MAP_FAILED;
     }
 
-    if (fileread(f, mem, len) != len) {
-        kfree(mem);
-        cprintf("%s", "fileread(f, mem, len) != len");
-        return MAP_FAILED;
-    }
+    addr = PGROUNDUP(curproc->sz);
 
-    int perm = 0;
-    if (flags & MAP_PROT_READ) perm |= PTE_P;
-    if (flags & MAP_PROT_WRITE) perm |= PTE_W;
-
-    if (mappages(curproc->pgdir, (void *) mem, len, V2P(mem), perm) != 0) {
-        kfree(mem);
-        cprintf("%s", "mappages(curproc->pgdir, (void *) mem, len, V2P(mem), perm) != 0");
-        return MAP_FAILED;
+    for (int a = addr; a < addr + len; a += PGSIZE) {
+        char *mem = kalloc();
+        if (mem == 0) {
+            for (int b = addr; b < a; b += PGSIZE) {
+                uvmunmap(p->pagetable, b, 1);
+            }
+            return MAP_FAILED;
+        }
+        memset(mem, 0, PGSIZE);
+        if (mappages(p->pagetable, a, PGSIZE, (uint64)mem, PTE_W | PTE_U) < 0) {
+            kfree(mem);
+            for (int b = addr; b < a; b += PGSIZE) {
+                uvmunmap(p->pagetable, b, 1);
+            }
+            return MAP_FAILED;
+        }
     }
 
     for (int i = 0; i < MAX_MMAP_PER_PROC; i++) {
@@ -588,7 +585,7 @@ int mmap(struct file* f, int off, int len, int flags)
         }
     }
 
-    return (int) mem;
+    return (int) addr;
 }
 
 int sys_mmap(void)
