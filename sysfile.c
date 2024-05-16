@@ -608,7 +608,53 @@ int sys_mmap(void)
 
 int munmap(void* addr, int length)
 {
-    return -1;
+    struct proc *p = myproc();
+    uint a, last;
+    pte_t *pte;
+    char *mem;
+    int found = -1;
+
+    // Check if addr is a multiple of 4KB and length is valid
+    if ((uint)addr % PGSIZE != 0 || length <= 0) {
+        return -1;
+    }
+
+    // Find the corresponding mmap region
+    for (int i = 0; i < p->mmap_count; i++) {
+        if (p->mmap_regions[i].addr == addr && p->mmap_regions[i].length == length) {
+            found = i;
+            break;
+        }
+    }
+
+    if (found == -1) {
+        return -1;
+    }
+
+    a = (uint)addr;
+    last = a + length;
+
+    for (; a < last; a += PGSIZE) {
+        if ((pte = walkpgdir(p->pgdir, (char *)a, 0)) && (*pte & PTE_P)) {
+            mem = P2V(PTE_ADDR(*pte));
+            // If the page is dirty, write back to the file
+            if (*pte & PTE_D) {
+                struct file *f = p->mmap_regions[found].file;
+                int offset = p->mmap_regions[found].offset + (a - (uint)p->mmap_regions[found].addr);
+                filewrite(f, (char *)a, offset);
+            }
+            kfree(mem);
+            *pte = 0;
+        }
+    }
+
+    // Remove the vma entry
+    for (int i = found; i < p->mmap_count - 1; i++) {
+        p->mmap_regions[i] = p->mmap_regions[i + 1];
+    }
+    p->mmap_count--;
+
+    return 0;
 }
 
 int sys_munmap(void)
