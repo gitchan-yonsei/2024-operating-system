@@ -561,10 +561,10 @@ int mmap(struct file* f, int off, int len, int flags)
         }
     }
 
-    f->off = off;
-    if (fileread(f, (char *) a, len) != len) {
-        goto fail;
-    }
+//    f->off = off;
+//    if (fileread(f, (char *) a, len) != len) {
+//        goto fail;
+//    }
 
 //    if (fileread(f, (char *) a, len) != len) {
 //        panic("can not read file!");
