@@ -576,7 +576,7 @@ int mmap(struct file* f, int off, int len, int flags)
 //    }
 //    iunlock(f->ip);
 
-    p->mmap_regions[p->mmap_count].addr = a;
+    p->mmap_regions[p->mmap_count].addr = (void *) a;
     p->mmap_regions[p->mmap_count].length = len;
     p->mmap_regions[p->mmap_count].file = f;
     p->mmap_regions[p->mmap_count].offset = off;
