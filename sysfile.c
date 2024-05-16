@@ -555,12 +555,15 @@ int mmap(struct file* f, int off, int len, int flags)
         }
     }
 
-    ilock(f->ip);
-    if (readi(f->ip, (char *)a, off, len) != len) {
-        iunlock(f->ip);
-        goto fail;
+    if (fileread(f, (char *) a, len) != last) {
+        panic("can not read file!");
     }
-    iunlock(f->ip);
+//    ilock(f->ip);
+//    if (readi(f->ip, (char *)a, off, len) != len) {
+//        iunlock(f->ip);
+//        goto fail;
+//    }
+//    iunlock(f->ip);
 
     return a;
 
