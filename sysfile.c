@@ -528,6 +528,12 @@ int mmap(struct file* f, int off, int len, int flags)
         addr -= PGSIZE;
     }
 
+    // 힙 영역 침범 확인
+    if (addr < curproc->sz) {
+        return MAP_FAILED;
+    }
+
+
     // Find an available mmap_area slot
 //    int i;
 //    for (i = 0; i < MAX_MMAP_AREAS; i++) {
