@@ -184,6 +184,7 @@ UPROGS=\
 	_zombie\
 	_swaptest\
 	_newvmtest\
+	_mmaptest\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)
