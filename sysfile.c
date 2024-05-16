@@ -561,12 +561,12 @@ int mmap(struct file* f, int off, int len, int flags)
         }
     }
 
-    ilock(f->ip);
-    if (readi(f->ip, (char *)a, off, len) != len) {
-        iunlock(f->ip);
-        goto fail;
-    }
-    iunlock(f->ip);
+//    ilock(f->ip);
+//    if (readi(f->ip, (char *)a, off, len) != len) {
+//        iunlock(f->ip);
+//        goto fail;
+//    }
+//    iunlock(f->ip);
 
     return a;
 
