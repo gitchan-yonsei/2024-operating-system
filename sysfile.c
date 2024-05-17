@@ -99,8 +99,19 @@ sys_close(void)
   int fd;
   struct file *f;
 
-  if(argfd(0, &fd, &f) < 0)
-    return -1;
+    if (argfd(0, &fd, &f) < 0) {
+        return -1;
+    }
+
+  struct proc *curproc = myproc();
+
+    // Unmap mmap regions associated with this file
+    for (int i = 0; i < MAX_MMAP_AREAS; i++) {
+        if (curproc->mmap_regions[i].valid && curproc->mmap_regions[i].file == f) {
+            munmap(curproc->mmap_regions[i].addr, curproc->mmap_regions[i].length);
+        }
+    }
+
   myproc()->ofile[fd] = 0;
   fileclose(f);
   return 0;
