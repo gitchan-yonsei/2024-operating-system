@@ -3,7 +3,6 @@
 // Mostly argument checking, since we don't trust
 // user code, and calls into file.c and fs.c.
 //
-
 #include "types.h"
 #include "defs.h"
 #include "param.h"
@@ -545,13 +544,14 @@ int mmap(struct file* f, int off, int len, int flags)
     // Find a free region in the process's address space
     a = PGROUNDUP(p->sz);
     last = a + len;
+    int j = a;
 
     // Ensure we don't exceed process's maximum memory size
     if (last >= KERNBASE) {
         return MAP_FAILED;
     }
 
-    for (i = 0; a < last; a += PGSIZE, i += PGSIZE) {
+    for (i = 0; j < last; j += PGSIZE, i += PGSIZE) {
         if ((mem = kalloc()) == 0) {
             goto fail;
         }
@@ -562,7 +562,7 @@ int mmap(struct file* f, int off, int len, int flags)
         readi(f->ip, mem, off + i, PGSIZE);
         iunlock(f->ip);
 
-        if (mappages(p->pgdir, (char *) a, PGSIZE, V2P(mem), PTE_W | PTE_U | PTE_P) < 0) {
+        if (mappages(p->pgdir, (char *) j, PGSIZE, V2P(mem), PTE_W | PTE_U | PTE_P) < 0) {
             kfree(mem);
             goto fail;
         }
@@ -573,10 +573,26 @@ int mmap(struct file* f, int off, int len, int flags)
     p->mmap_regions[p->mmap_count].file = f;
     p->mmap_regions[p->mmap_count].offset = off;
     p->mmap_regions[p->mmap_count].flags = flags;
+    p->mmap_regions[p->mmap_count].valid = 1;
+    p->mmap_count++;
 
-    return a - len;
+    // Log everything!
+    for (int i = 0; i < p->mmap_count; i++) {
+        cprintf("mmap_region[%d]: addr = %x, length = %d, file = %p, offset = %d, flags = %d, valid = %d\n",
+                i,
+                (uint)p->mmap_regions[i].addr,
+                p->mmap_regions[i].length,
+                p->mmap_regions[i].file,
+                p->mmap_regions[i].offset,
+                p->mmap_regions[i].flags,
+                p->mmap_regions[i].valid
+        );
+    }
+
+    return (int) p->mmap_regions[p->mmap_count - 1].addr;
 
     fail:
+    end_op();
     // Unmap and free any allocated pages
     for (uint pa = PGROUNDUP(p->sz); pa < a; pa += PGSIZE) {
         if ((pte = walkpgdir(p->pgdir, (void *)pa, 0)) && (*pte & PTE_P)) {
@@ -601,50 +617,53 @@ int sys_mmap(void)
 int munmap(void* addr, int length)
 {
     struct proc *p = myproc();
-    uint a, last;
-    pte_t *pte;
-    char *mem;
-    int found = -1;
+    int found = 0;
+    struct mmap_region *region = 0;
 
-    // Check if addr is a multiple of 4KB and length is valid
-    if ((uint)addr % PGSIZE != 0 || length <= 0) {
-        return -1;
+    // addr should be a multiple of 4KB (if not, return -1)
+    if ((uint) addr % PGSIZE != 0) {
+        return MAP_FAILED;
     }
 
-    // Find the corresponding mmap region
-    for (int i = 0; i < p->mmap_count; i++) {
-        if (p->mmap_regions[i].addr == addr && p->mmap_regions[i].length == length) {
-            found = i;
+    // length should be identical to the original mmap (if not, return -1)
+    for (int i = 0; i < 4; i++) {
+        if (p->mmap_regions[i].addr == addr && p->mmap_regions[i].length == length && p->mmap_regions[i].valid == 1) {
+            found = 1;
+            region = &p->mmap_regions[i];
             break;
         }
     }
 
-    if (found == -1) {
-        return -1;
+    // If there are no mappings in the specified address range, then you just return 0
+    if (!found) {
+        return 0;
     }
 
-    a = (uint)addr;
-    last = a + length;
+    pte_t *pte;
+    char *mem;
+    uint a = (uint) addr;
+    struct file *f = region->file;
 
-    for (; a < last; a += PGSIZE) {
-        if ((pte = walkpgdir(p->pgdir, (char *)a, 0)) && (*pte & PTE_P)) {
+    begin_op();
+
+    for (uint pa = a; pa < a + length; pa += PGSIZE){
+        pte = walkpgdir(p->pgdir, (void *) pa, 0);
+        if (pte && (*pte & PTE_P)) {
             mem = P2V(PTE_ADDR(*pte));
-            // If the page is dirty, write back to the file
-            if (*pte & PTE_P) {
-                struct file *f = p->mmap_regions[found].file;
-                int offset = p->mmap_regions[found].offset + (a - (uint)p->mmap_regions[found].addr);
-                filewrite(f, (char *)a, offset);
-            }
+
+            // Write the contents back to the file
+            ilock(f->ip);
+            writei(f->ip, mem, region->offset + (pa - a), PGSIZE);
+            iunlock(f->ip);
+
+            // Free the page
             kfree(mem);
             *pte = 0;
         }
     }
 
-    // Remove the vma entry
-    for (int i = found; i < p->mmap_count - 1; i++) {
-        p->mmap_regions[i] = p->mmap_regions[i + 1];
-    }
-    p->mmap_count--;
+    end_op();
+    region->valid = 0;
 
     return 0;
 }

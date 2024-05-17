@@ -45,6 +45,7 @@ struct mmap_region {
     struct file *file;
     int offset;
     int flags;
+    int valid;
 };
 
 enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
