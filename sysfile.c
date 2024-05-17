@@ -625,13 +625,14 @@ int munmap(void* addr, int length)
 
     pte_t *pte;
 
-    cprintf("%x", *pte);
     char *mem;
     uint a = (uint) addr;
     struct file *f = region->file;
 
     for (uint pa = a; pa < a + length; pa += PGSIZE){
-        if ((pte = walkpgdir(p->pgdir, (void *)pa, 0)) && (*pte & PTE_P)) {
+        pte = walkpgdir(p->pgdir, (void *)pa, 0)
+        cprintf("%x", *pte);
+        if (pte && (*pte & PTE_P)) {
             mem = P2V(PTE_ADDR(*pte));
 
             // Write the contents back to the file
