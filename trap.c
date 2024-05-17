@@ -89,19 +89,20 @@ trap(struct trapframe *tf)
       if (va >= KERNBASE) {
           cprintf("kernel space 침범");
           myproc()->killed = 1;
-          break;
+          exit();
       }
 
       char *mem = kalloc();
       if (!mem) {
           cprintf("메모리 할당 불가");
           myproc()->killed = 1;
-          break;
+          exit();
       }
 
       if (va >= (myproc()->stack_lower_bound - PGSIZE) && va < myproc()->stack_lower_bound) {
           cprintf("스택가드 영역 침범");
           myproc()->killed = 1;
+          exit();
       }
 
       memset(mem, 0, PGSIZE);
@@ -109,7 +110,7 @@ trap(struct trapframe *tf)
       if (mappages(myproc()->pgdir, (char *) PGROUNDDOWN(va), PGSIZE, V2P(mem), PTE_W | PTE_U) < 0) {
           kfree(mem);
           myproc()->killed = 1;
-          break;
+          exit();
       }
   }
           break;
