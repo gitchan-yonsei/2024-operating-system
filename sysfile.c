@@ -625,7 +625,7 @@ int munmap(void* addr, int length)
 
     pte_t *pte;
     char *mem;
-    uint a = addr;
+    uint a = (uint) addr;
     struct file *f = region->file;
 
     for (uint pa = a; pa < a + length; pa += PGSIZE){
