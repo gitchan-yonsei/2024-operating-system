@@ -589,7 +589,7 @@ int mmap(struct file* f, int off, int len, int flags)
         );
     }
 
-    return (int) p->mmap_regions[p->mmap_count].addr;
+    return (int) p->mmap_regions[p->mmap_count - 1].addr;
 
     fail:
     // Unmap and free any allocated pages

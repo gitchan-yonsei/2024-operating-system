@@ -16,7 +16,6 @@ int main(int argc, char *argv[]) {
         exit();
     }
 
-
     printf(1, "frees (init): %d\n", frees());
 
     printf(1, "=== mmap test ===\n");
