@@ -15,6 +15,7 @@
 #include "file.h"
 #include "fcntl.h"
 #include "memlayout.h"
+#include "mmap.h"
 
 int mmap_count = 0;
 
@@ -92,7 +93,7 @@ sys_write(void)
   return filewrite(f, p, n);
 }
 
-int munmap(void* addr, int length);
+//int munmap(void* addr, int length);
 
 int
 sys_close(void)
