@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
 
     strcpy(memory, "hello world!");
 
-    printf("data: %s\n", memory);
+    printf(1, "data: %s\n", memory);
 
     printf(1, "frees (init): %d\n", frees());
 
