@@ -553,7 +553,7 @@ int mmap(struct file* f, int off, int len, int flags)
 
     // processes does not mmap the same file simultaneously
     for (int i = 0; i < MAX_MMAP_AREAS; i++) {
-        struct mmap_region *r = p->mmap_regions[i];
+        struct mmap_region *r = &p->mmap_regions[i];
         if (!r->valid && r->file == f) {
             return MAP_FAILED;
         }
