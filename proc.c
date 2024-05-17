@@ -6,6 +6,7 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
+#include "sysfile.c"
 
 struct {
   struct spinlock lock;
@@ -244,6 +245,13 @@ exit(void)
       curproc->ofile[fd] = 0;
     }
   }
+
+  // Unmap all mmap regions
+    for (int i = 0; i < MAX_MMAP_AREAS; i++) {
+        if (curproc->mmap_regions[i].valid) {
+            munmap(curproc->mmap_regions[i].addr, curproc->mmap_regions[i].length);
+        }
+    }
 
   begin_op();
   iput(curproc->cwd);
