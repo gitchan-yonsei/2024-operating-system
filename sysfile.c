@@ -643,6 +643,17 @@ int munmap(void* addr, int length)
         }
     }
 
+    // Remove the mmap region
+    for (int i = 0; i < p->mmap_count; i++) {
+        if (p->mmap_regions[i].addr == addr && p->mmap_regions[i].length == length) {
+            for (int j = i; j < p->mmap_count - 1; j++) {
+                p->mmap_regions[j] = p->mmap_regions[j + 1];
+            }
+            p->mmap_count--;
+            break;
+        }
+    }
+
     return 0;
 }
 
