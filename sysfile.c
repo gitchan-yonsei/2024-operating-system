@@ -601,47 +601,25 @@ int sys_mmap(void)
 int munmap(void* addr, int length)
 {
     struct proc *p = myproc();
-    pte_t *pte;
-    uint a = (uint)addr;
-    int i;
+    int found = 0;
 
-    if (a % PGSIZE != 0) {
-        return -1;
+    // addr should be a multiple of 4KB (if not, return -1)
+    if (addr % PGSIZE != 0) {
+        return MAP_FAILED;
     }
 
-    for (i = 0; i < p->mmap_count; i++) {
+    // length should be identical to the original mmap (if not, return -1)
+    for (int i = 0; i < p->mmap_count; i++) {
         if (p->mmap_regions[i].addr == addr && p->mmap_regions[i].length == length) {
-            struct file *f = p->mmap_regions[i].file;
-            char *mem;
-
-            for (uint pa = a; pa < a + length; pa += PGSIZE) {
-                if ((pte = walkpgdir(p->pgdir, (void *)pa, 0)) && (*pte & PTE_P)) {
-                    mem = P2V(PTE_ADDR(*pte));
-
-                    // If the page is dirty, write it back to the file
-                    if (*pte & PTE_D) {
-                        ilock(f->ip);
-                        writei(f->ip, mem, p->mmap_regions[i].offset + (pa - a), PGSIZE);
-                        iunlock(f->ip);
-                    }
-
-                    // Free the page
-                    kfree(mem);
-                    *pte = 0;
-                }
-            }
-
-            // Remove the mmap region
-            for (int j = i; j < p->mmap_count - 1; j++) {
-                p->mmap_regions[j] = p->mmap_regions[j + 1];
-            }
-            p->mmap_count--;
-
-            return 0;
+            found = 1;
+            break;
         }
     }
 
-    // No mappings in the specified address range
+    if (!found) {
+        return MAP_FAILED;
+    }
+
     return 0;
 }
 
