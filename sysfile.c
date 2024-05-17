@@ -102,9 +102,13 @@ sys_close(void)
         return -1;
     }
 
-    // New code to handle mmap'ed areas
-    if (f->mmap_addr != 0) {
-        munmap((void*)f->mmap_addr, f->mmap_length);
+    struct proc *curproc = myproc();
+
+    // Unmap mmap regions associated with this file
+    for (int i = 0; i < MAX_MMAP_AREAS; i++) {
+        if (curproc->mmap_regions[i].valid && curproc->mmap_regions[i].file == f) {
+            munmap(curproc->mmap_regions[i].addr, curproc->mmap_regions[i].length);
+        }
     }
 
   myproc()->ofile[fd] = 0;
