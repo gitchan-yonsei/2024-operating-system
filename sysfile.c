@@ -92,6 +92,8 @@ sys_write(void)
   return filewrite(f, p, n);
 }
 
+int munmap(void* addr, int length);
+
 int
 sys_close(void)
 {
@@ -100,6 +102,15 @@ sys_close(void)
 
   if(argfd(0, &fd, &f) < 0)
     return -1;
+
+  struct proc *curproc = myproc();
+
+    for (int i = 0; i < MAX_MMAP_AREAS; i++) {
+        if (curproc->mmap_regions[i].valid && curproc->mmap_regions[i].file == f) {
+            munmap(curproc->mmap_regions[i].addr, curproc->mmap_regions[i].length);
+        }
+    }
+
   myproc()->ofile[fd] = 0;
   fileclose(f);
   return 0;
