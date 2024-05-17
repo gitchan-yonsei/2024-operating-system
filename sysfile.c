@@ -577,14 +577,14 @@ int mmap(struct file* f, int off, int len, int flags)
 
     // Log everything!
     for (int i = 0; i < p->mmap_count; i++) {
-        printf(1, "mmap_region[%d]: addr = %x, length = %d, file = %p, offset = %d, flags = %d, valid = %d\n",
-               i,
-               (uint)p->mmap_regions[i].addr,
-               p->mmap_regions[i].length,
-               p->mmap_regions[i].file,
-               p->mmap_regions[i].offset,
-               p->mmap_regions[i].flags,
-               p->mmap_regions[i].valid
+        cprintf("mmap_region[%d]: addr = %x, length = %d, file = %p, offset = %d, flags = %d, valid = %d\n",
+                i,
+                (uint)p->mmap_regions[i].addr,
+                p->mmap_regions[i].length,
+                p->mmap_regions[i].file,
+                p->mmap_regions[i].offset,
+                p->mmap_regions[i].flags,
+                p->mmap_regions[i].valid
         );
     }
 
