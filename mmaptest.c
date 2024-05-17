@@ -16,8 +16,9 @@ int main(int argc, char *argv[]) {
         exit();
     }
 
-    // 파일에 데이터를 쓰기 (예: 초기화)
-    write(fd, "Hello, xv6!", 12);
+    strcpy(memory, "hello world!");
+
+    printf("data: %s\n", memory);
 
     printf(1, "frees (init): %d\n", frees());
 
