@@ -605,7 +605,7 @@ int munmap(void* addr, int length)
     struct mmap_region *region = 0;
 
     // addr should be a multiple of 4KB (if not, return -1)
-    if (addr % PGSIZE != 0) {
+    if ((uint) addr % PGSIZE != 0) {
         return MAP_FAILED;
     }
 
