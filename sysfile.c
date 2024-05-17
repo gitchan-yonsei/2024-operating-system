@@ -637,20 +637,10 @@ int munmap(void* addr, int length)
             writei(f->ip, mem, region->offset + (pa - a), PGSIZE);
             iunlock(f->ip);
 
+            panic("여기!");
             // Free the page
             kfree(mem);
             *pte = 0;
-        }
-    }
-
-    // Remove the mmap region
-    for (int i = 0; i < p->mmap_count; i++) {
-        if (p->mmap_regions[i].addr == addr && p->mmap_regions[i].length == length) {
-            for (int j = i; j < p->mmap_count - 1; j++) {
-                p->mmap_regions[j] = p->mmap_regions[j + 1];
-            }
-            p->mmap_count--;
-            break;
         }
     }
 
