@@ -63,8 +63,17 @@ exec(char *path, char **argv)
   // Allocate two pages at the next page boundary.
   // Make the first inaccessible.  Use the second as the user stack.
   sz = PGROUNDUP(sz);
+
+  struct proc *p = myproc();
+
+  // stack guard 만들어줌 -> sz = stack guard의 최상위 주소 = stack 영역의 최하위 주소
   if((sz = allocuvm(pgdir, sz, sz + PGSIZE)) == 0)
     goto bad;
+
+    p->stack_lower_bound = sz;
+    p->stack_upper_bound = sz + 4 * PGSIZE;
+
+    // stack guard에 접근할 수 없도록 설정함
   clearpteu(pgdir, (char*)(sz - PGSIZE));
 
   if((sz = allocuvm(pgdir, sz + PGSIZE*(3), sz + PGSIZE*4)) == 0)

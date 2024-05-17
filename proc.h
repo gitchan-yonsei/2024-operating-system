@@ -53,7 +53,8 @@ enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 // Per-process state
 struct proc {
   uint sz;                     // Size of process memory (bytes) 힙의 끝
-  uint stack_base;             // 스택의 시작 주소
+  uint stack_lower_bound;             // 스택의 시작 주소
+  uint stack_upper_bound;
   pde_t* pgdir;                // Page table
   char *kstack;                // Bottom of kernel stack for this process
   enum procstate state;        // Process state
