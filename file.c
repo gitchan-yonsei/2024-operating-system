@@ -9,6 +9,7 @@
 #include "spinlock.h"
 #include "sleeplock.h"
 #include "file.h"
+#include "sysfile.c"
 
 struct devsw devsw[NDEV];
 struct {
@@ -57,6 +58,7 @@ void
 fileclose(struct file *f)
 {
   struct file ff;
+  struct proc *p = myproc();
 
   acquire(&ftable.lock);
   if(f->ref < 1)
@@ -69,6 +71,14 @@ fileclose(struct file *f)
   f->ref = 0;
   f->type = FD_NONE;
   release(&ftable.lock);
+
+  // When a file descriptor closes, its mmap’ed areas are unmaped
+    for (int i = 0; i < p->mmap_count; i++) {
+        struct mmap_region *r = &p->mmap_regions[i];
+        if (r->valid && r->file == f) {
+            munmap(r->addr, r->length);
+        }
+    }
 
   if(ff.type == FD_PIPE)
     pipeclose(ff.pipe, ff.writable);
