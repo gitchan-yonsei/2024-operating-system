@@ -21,8 +21,8 @@ int main(void)
 	printf(1, "heap_int: 0x%p\n", heap_int);
 
 	// uncomment below to test 16KB stack 
-	//ptr = (int*)((int)&stack_int - 0x3000);
-	//*ptr = 0;
+	ptr = (int*)((int)&stack_int - 0x3000);
+	*ptr = 0;
 
 	printf(1, "frees before malloc: %d\n", frees());
 	ptr = malloc(40960);
