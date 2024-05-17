@@ -610,7 +610,7 @@ int munmap(void* addr, int length)
     }
 
     // length should be identical to the original mmap (if not, return -1)
-    for (int i = 0; i < p->mmap_count; i++) {
+    for (int i = 0; i < 4; i++) {
         if (p->mmap_regions[i].addr == addr && p->mmap_regions[i].length == length) {
             found = 1;
             region = &p->mmap_regions[i];
