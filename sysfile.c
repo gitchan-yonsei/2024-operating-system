@@ -592,6 +592,7 @@ int mmap(struct file* f, int off, int len, int flags)
     return (int) p->mmap_regions[p->mmap_count - 1].addr;
 
     fail:
+    end_op();
     // Unmap and free any allocated pages
     for (uint pa = PGROUNDUP(p->sz); pa < a; pa += PGSIZE) {
         if ((pte = walkpgdir(p->pgdir, (void *)pa, 0)) && (*pte & PTE_P)) {
@@ -625,7 +626,7 @@ int munmap(void* addr, int length)
     }
 
     // length should be identical to the original mmap (if not, return -1)
-    for (int i = 0; i < p->mmap_count; i++) {
+    for (int i = 0; i < 4; i++) {
         if (p->mmap_regions[i].addr == addr && p->mmap_regions[i].length == length && p->mmap_regions[i].valid == 1) {
             found = 1;
             region = &p->mmap_regions[i];
@@ -639,14 +640,14 @@ int munmap(void* addr, int length)
     }
 
     pte_t *pte;
-
     char *mem;
     uint a = (uint) addr;
     struct file *f = region->file;
 
+    begin_op();
+
     for (uint pa = a; pa < a + length; pa += PGSIZE){
         pte = walkpgdir(p->pgdir, (void *) pa, 0);
-        cprintf("%x", *pte);
         if (pte && (*pte & PTE_P)) {
             mem = P2V(PTE_ADDR(*pte));
 
@@ -660,6 +661,9 @@ int munmap(void* addr, int length)
             *pte = 0;
         }
     }
+
+    end_op();
+    region->valid = 0;
 
     return 0;
 }
