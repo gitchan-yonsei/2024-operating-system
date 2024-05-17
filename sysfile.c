@@ -98,8 +98,15 @@ sys_close(void)
   int fd;
   struct file *f;
 
-  if(argfd(0, &fd, &f) < 0)
-    return -1;
+    if (argfd(0, &fd, &f) < 0) {
+        return -1;
+    }
+
+    // New code to handle mmap'ed areas
+    if (f->mmap_addr != 0) {
+        munmap((void*)f->mmap_addr, f->mmap_length);
+    }
+
   myproc()->ofile[fd] = 0;
   fileclose(f);
   return 0;
