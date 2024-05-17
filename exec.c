@@ -67,8 +67,9 @@ exec(char *path, char **argv)
   struct proc *p = myproc();
 
   // stack guard 만들어줌 -> sz = stack guard의 최상위 주소 = stack 영역의 최하위 주소
-  if((sz = allocuvm(pgdir, sz, sz + PGSIZE)) == 0)
-    goto bad;
+    if ((sz = allocuvm(pgdir, sz, sz + PGSIZE)) == 0) {
+        goto bad;
+    }
 
     p->stack_lower_bound = sz;
     p->stack_upper_bound = sz + 4 * PGSIZE;
