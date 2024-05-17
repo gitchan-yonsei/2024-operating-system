@@ -16,15 +16,14 @@ int main(int argc, char *argv[]) {
         exit();
     }
 
-    strcpy(memory, "hello world!");
-
-    printf(1, "data: %s\n", memory);
 
     printf(1, "frees (init): %d\n", frees());
 
     printf(1, "=== mmap test ===\n");
     // mmap() 호출
     memory = mmap(fd, 0, 4096, MAP_PROT_READ | MAP_PROT_WRITE);
+    strcpy(memory, "hello world!");
+    printf(1, "data: %s\n", memory);
 
     printf(1, "frees (after mmap): %d\n", frees());
     if (memory == (char *) -1) {
