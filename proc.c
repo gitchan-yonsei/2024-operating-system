@@ -239,6 +239,7 @@ exit(void)
         panic("init exiting");
     }
 
+    // exit할 때 unmap
     for(int i = 0; i < MAX_MMAP_AREAS; i++) {
         if (curproc->mmap_regions[i].valid) {
             munmap(curproc->mmap_regions[i].addr, curproc->mmap_regions[i].length);
