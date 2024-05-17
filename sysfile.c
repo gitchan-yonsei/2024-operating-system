@@ -624,6 +624,8 @@ int munmap(void* addr, int length)
     }
 
     pte_t *pte;
+
+    cprintf("%x", *pte);
     char *mem;
     uint a = (uint) addr;
     struct file *f = region->file;
@@ -637,7 +639,6 @@ int munmap(void* addr, int length)
             writei(f->ip, mem, region->offset + (pa - a), PGSIZE);
             iunlock(f->ip);
 
-            panic("여기!");
             // Free the page
             kfree(mem);
             *pte = 0;
