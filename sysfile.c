@@ -601,51 +601,47 @@ int sys_mmap(void)
 int munmap(void* addr, int length)
 {
     struct proc *p = myproc();
-    uint a, last;
     pte_t *pte;
-    char *mem;
-    int found = -1;
+    uint a = (uint)addr;
+    int i;
 
-    // Check if addr is a multiple of 4KB and length is valid
-    if ((uint)addr % PGSIZE != 0 || length <= 0) {
+    if (a % PGSIZE != 0) {
         return -1;
     }
 
-    // Find the corresponding mmap region
-    for (int i = 0; i < p->mmap_count; i++) {
+    for (i = 0; i < p->mmap_count; i++) {
         if (p->mmap_regions[i].addr == addr && p->mmap_regions[i].length == length) {
-            found = i;
-            break;
-        }
-    }
+            struct file *f = p->mmap_regions[i].file;
+            char *mem;
 
-    if (found == -1) {
-        return -1;
-    }
+            for (uint pa = a; pa < a + length; pa += PGSIZE) {
+                if ((pte = walkpgdir(p->pgdir, (void *)pa, 0)) && (*pte & PTE_P)) {
+                    mem = P2V(PTE_ADDR(*pte));
 
-    a = (uint)addr;
-    last = a + length;
+                    // If the page is dirty, write it back to the file
+                    if (*pte & PTE_D) {
+                        ilock(f->ip);
+                        writei(f->ip, mem, p->mmap_regions[i].offset + (pa - a), PGSIZE);
+                        iunlock(f->ip);
+                    }
 
-    for (; a < last; a += PGSIZE) {
-        if ((pte = walkpgdir(p->pgdir, (char *)a, 0)) && (*pte & PTE_P)) {
-            mem = P2V(PTE_ADDR(*pte));
-            // If the page is dirty, write back to the file
-            if (*pte & PTE_P) {
-                struct file *f = p->mmap_regions[found].file;
-                int offset = p->mmap_regions[found].offset + (a - (uint)p->mmap_regions[found].addr);
-                filewrite(f, (char *)a, offset);
+                    // Free the page
+                    kfree(mem);
+                    *pte = 0;
+                }
             }
-            kfree(mem);
-            *pte = 0;
+
+            // Remove the mmap region
+            for (int j = i; j < p->mmap_count - 1; j++) {
+                p->mmap_regions[j] = p->mmap_regions[j + 1];
+            }
+            p->mmap_count--;
+
+            return 0;
         }
     }
 
-    // Remove the vma entry
-    for (int i = found; i < p->mmap_count - 1; i++) {
-        p->mmap_regions[i] = p->mmap_regions[i + 1];
-    }
-    p->mmap_count--;
-
+    // No mappings in the specified address range
     return 0;
 }
 
