@@ -47,12 +47,18 @@ sys_sbrk(void)
 {
   int addr;
   int n;
+  struct proc *curproc = myproc();
 
-  if(argint(0, &n) < 0)
-    return -1;
-  addr = myproc()->sz;
-  if(growproc(n) < 0)
-    return -1;
+    if (argint(0, &n) < 0) {
+        return -1;
+    }
+    addr = myproc()->sz;
+    if (growproc(n) < 0) {
+        return -1;
+    }
+
+    // 힙을 확장하기는 하지만, 실제로 페이지를 할당하지는 않음.
+    curproc->sz += n;
   return addr;
 }
 
