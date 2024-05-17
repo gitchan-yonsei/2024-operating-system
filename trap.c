@@ -47,35 +47,8 @@ trap(struct trapframe *tf)
   }
 
   switch(tf->trapno){
-      case T_PGFLT:
-          uint va = rcr2();
-          struct proc *p = myproc();
+//      case T_PGFLT:
 
-          if(va < p->stack_lower_bound && va >= p->stack_lower_bound - MAX_STACK_SIZE) {
-              // Attempt to allocate a new page for the stack
-              if(allocuvm(p->pgdir, PGROUNDDOWN(va), p->stack_lower_bound) == 0) {
-                  cprintf("Stack overflow: killing process %d\n", p->pid);
-                  p->killed = 1;
-              } else {
-                  // Update the stackbase to the new lower address
-                  p->stack_lower_bound = PGROUNDDOWN(va);
-              }
-          } else {
-              // For other page faults, handle as before
-              if(p == 0 || (tf->cs&3) == 0){
-                  // In kernel, it must be our mistake.
-                  cprintf("unexpected trap %d from cpu %d eip %x (cr2=0x%x)\n",
-                          tf->trapno, cpuid(), tf->eip, rcr2());
-                  panic("trap");
-              }
-              // In user space, assume process misbehaved.
-              cprintf("pid %d %s: trap %d err %d on cpu %d "
-                      "eip 0x%x addr 0x%x--kill proc\n",
-                      p->pid, p->name, tf->trapno,
-                      tf->err, cpuid(), tf->eip, rcr2());
-              p->killed = 1;
-          }
-          break;
   case T_IRQ0 + IRQ_TIMER:
     if(cpuid() == 0){
       acquire(&tickslock);
