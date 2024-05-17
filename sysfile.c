@@ -377,7 +377,7 @@ sys_chdir(void)
   char *path;
   struct inode *ip;
   struct proc *curproc = myproc();
-  
+
   begin_op();
   if(argstr(0, &path) < 0 || (ip = namei(path)) == 0){
     end_op();
@@ -540,6 +540,7 @@ int mmap(struct file* f, int off, int len, int flags)
     uint a, last;
     pte_t *pte;
     char *mem;
+    int i;
 
     // Find a free region in the process's address space
     a = PGROUNDUP(p->sz);
@@ -550,31 +551,22 @@ int mmap(struct file* f, int off, int len, int flags)
         return MAP_FAILED;
     }
 
-    for (; a < last; a += PGSIZE) {
+    for (i = 0; a < last; a += PGSIZE, i += PGSIZE) {
         if ((mem = kalloc()) == 0) {
             goto fail;
         }
         memset(mem, 0, PGSIZE);
-        if (mappages(p->pgdir, (char *)a, PGSIZE, V2P(mem), PTE_W | PTE_U | PTE_P) < 0) {
+
+        // Read file content into allocated memory
+        ilock(f->ip);
+        readi(f->ip, mem, off + i, PGSIZE);
+        iunlock(f->ip);
+
+        if (mappages(p->pgdir, (char *) a, PGSIZE, V2P(mem), PTE_W | PTE_U | PTE_P) < 0) {
             kfree(mem);
             goto fail;
         }
     }
-
-//    f->off = off;
-//    if (fileread(f, (char *) a, len) != len) {
-//        goto fail;
-//    }
-
-//    if (fileread(f, (char *) a, len) != len) {
-//        panic("can not read file!");
-//    }
-//    ilock(f->ip);
-//    if (readi(f->ip, (char *)a, off, len) != len) {
-//        iunlock(f->ip);
-//        goto fail;
-//    }
-//    iunlock(f->ip);
 
     p->mmap_regions[p->mmap_count].addr = (void *) a;
     p->mmap_regions[p->mmap_count].length = len;
@@ -582,7 +574,7 @@ int mmap(struct file* f, int off, int len, int flags)
     p->mmap_regions[p->mmap_count].offset = off;
     p->mmap_regions[p->mmap_count].flags = flags;
 
-    return a;
+    return a - len;
 
     fail:
     // Unmap and free any allocated pages
@@ -600,7 +592,7 @@ int sys_mmap(void)
 {
 	struct file *f;
 	int off, len, flags;
-	if ( argfd(0, 0, &f) < 0 || argint(1, &off) < 0 || 
+	if ( argfd(0, 0, &f) < 0 || argint(1, &off) < 0 ||
 			argint(2, &len) < 0 || argint(3, &flags) < 0 )
 		return -1;
 	return mmap(f, off, len, flags);
