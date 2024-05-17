@@ -6,6 +6,7 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
+#include "mmap.h"
 
 struct {
   struct spinlock lock;
@@ -236,6 +237,12 @@ exit(void)
 
   if(curproc == initproc)
     panic("init exiting");
+
+    for(int i = 0; i < MAX_MMAP_AREAS; i++) {
+        if (curproc->mmap_regions[i].valid) {
+            munmap(curproc->mmap_regions[i].addr, curproc->mmap_regions[i].length);
+        }
+    }
 
   // Close all open files.
   for(fd = 0; fd < NOFILE; fd++){
