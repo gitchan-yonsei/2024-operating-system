@@ -573,8 +573,9 @@ int mmap(struct file* f, int off, int len, int flags)
     p->mmap_regions[p->mmap_count].file = f;
     p->mmap_regions[p->mmap_count].offset = off;
     p->mmap_regions[p->mmap_count].flags = flags;
+    p->mmap_regions[p->mmap_count].valid = 1;
 
-    return a;
+    return p->mmap_regions[p->mmap_count].addr;
 
     fail:
     // Unmap and free any allocated pages
@@ -611,7 +612,7 @@ int munmap(void* addr, int length)
 
     // length should be identical to the original mmap (if not, return -1)
     for (int i = 0; i < 4; i++) {
-        if (p->mmap_regions[i].addr == addr && p->mmap_regions[i].length == length) {
+        if (p->mmap_regions[i].addr == addr && p->mmap_regions[i].length == length && p->mmap_regions[i].valid == 1) {
             found = 1;
             region = &p->mmap_regions[i];
             break;
