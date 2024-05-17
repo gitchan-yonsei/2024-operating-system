@@ -573,7 +573,7 @@ int mmap(struct file* f, int off, int len, int flags)
     p->mmap_regions[p->mmap_count].offset = off;
     p->mmap_regions[p->mmap_count].flags = flags;
 
-    return a - len;
+    return a;
 
     fail:
     // Unmap and free any allocated pages
