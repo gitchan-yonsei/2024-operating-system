@@ -10,6 +10,8 @@
 #include "sleeplock.h"
 #include "file.h"
 
+int munmap(void *addr, int length);
+
 struct devsw devsw[NDEV];
 struct {
   struct spinlock lock;
