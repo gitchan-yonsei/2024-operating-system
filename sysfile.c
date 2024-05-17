@@ -105,6 +105,7 @@ sys_close(void)
 
   struct proc *curproc = myproc();
 
+    // Unmap mmap regions associated with this file
     for (int i = 0; i < MAX_MMAP_AREAS; i++) {
         if (curproc->mmap_regions[i].valid && curproc->mmap_regions[i].file == f) {
             munmap(curproc->mmap_regions[i].addr, curproc->mmap_regions[i].length);
