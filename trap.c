@@ -32,6 +32,53 @@ idtinit(void)
   lidt(idt, sizeof(idt));
 }
 
+pte_t *
+walkpgdir(pde_t *pgdir, const void *va, int alloc)
+{
+    pde_t *pde;
+    pte_t *pgtab;
+
+    pde = &pgdir[PDX(va)];
+    if(*pde & PTE_P){
+        pgtab = (pte_t*)P2V(PTE_ADDR(*pde));
+    } else {
+        if(!alloc || (pgtab = (pte_t*)kalloc()) == 0)
+            return 0;
+        // Make sure all those PTE_P bits are zero.
+        memset(pgtab, 0, PGSIZE);
+        // The permissions here are overly generous, but they can
+        // be further restricted by the permissions in the page table
+        // entries, if necessary.
+        *pde = V2P(pgtab) | PTE_P | PTE_W | PTE_U;
+    }
+    return &pgtab[PTX(va)];
+}
+
+// Create PTEs for virtual addresses starting at va that refer to
+// physical addresses starting at pa. va and size might not
+// be page-aligned.
+int
+mappages(pde_t *pgdir, void *va, uint size, uint pa, int perm)
+{
+    char *a, *last;
+    pte_t *pte;
+
+    a = (char*)PGROUNDDOWN((uint)va);
+    last = (char*)PGROUNDDOWN(((uint)va) + size - 1);
+    for(;;){
+        if((pte = walkpgdir(pgdir, a, 1)) == 0)
+            return -1;
+        if(*pte & PTE_P)
+            panic("remap");
+        *pte = pa | perm | PTE_P;
+        if(a == last)
+            break;
+        a += PGSIZE;
+        pa += PGSIZE;
+    }
+    return 0;
+}
+
 //PAGEBREAK: 41
 void
 trap(struct trapframe *tf)
@@ -81,7 +128,31 @@ trap(struct trapframe *tf)
             cpuid(), tf->cs, tf->eip);
     lapiceoi();
     break;
+  case T_PGFLT:
+  {
+      uint va = rcr2(); // faulted virtual address
+      if (va >= KERNBASE) {
+          cprintf("kernel space 침범");
+          myproc()->killed = 1;
+          break;
+      }
 
+      char *mem = kalloc();
+      if (!mem) {
+          cprintf("메모리 할당 불가");
+          myproc()->killed = 1;
+          break;
+      }
+
+      memset(mem, 0, PGSIZE);
+
+      if (mappages(myproc()->pgdir, (char *) PGROUNDDOWN(va), PGSIZE, V2P(mem), PTE_W | PTE_U) < 0) {
+          kfree(mem);
+          myproc()->killed = 1;
+          break;
+      }
+  }
+          break;
   //PAGEBREAK: 13
   default:
     if(myproc() == 0 || (tf->cs&3) == 0){
