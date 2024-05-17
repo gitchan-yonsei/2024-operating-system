@@ -235,8 +235,9 @@ exit(void)
   struct proc *p;
   int fd;
 
-  if(curproc == initproc)
-    panic("init exiting");
+    if (curproc == initproc) {
+        panic("init exiting");
+    }
 
     for(int i = 0; i < MAX_MMAP_AREAS; i++) {
         if (curproc->mmap_regions[i].valid) {
