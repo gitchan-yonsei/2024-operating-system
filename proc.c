@@ -89,6 +89,8 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
+  p->sz = 0;
+  p->stack_base = KSTACKSIZE;
 
   release(&ptable.lock);
 
