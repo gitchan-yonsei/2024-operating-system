@@ -544,13 +544,14 @@ int mmap(struct file* f, int off, int len, int flags)
     // Find a free region in the process's address space
     a = PGROUNDUP(p->sz);
     last = a + len;
+    int j = a;
 
     // Ensure we don't exceed process's maximum memory size
     if (last >= KERNBASE) {
         return MAP_FAILED;
     }
 
-    for (i = 0; a < last; a += PGSIZE, i += PGSIZE) {
+    for (i = 0; j < last; j += PGSIZE, i += PGSIZE) {
         if ((mem = kalloc()) == 0) {
             goto fail;
         }
@@ -561,7 +562,7 @@ int mmap(struct file* f, int off, int len, int flags)
         readi(f->ip, mem, off + i, PGSIZE);
         iunlock(f->ip);
 
-        if (mappages(p->pgdir, (char *) a, PGSIZE, V2P(mem), PTE_W | PTE_U | PTE_P) < 0) {
+        if (mappages(p->pgdir, (char *) j, PGSIZE, V2P(mem), PTE_W | PTE_U | PTE_P) < 0) {
             kfree(mem);
             goto fail;
         }
