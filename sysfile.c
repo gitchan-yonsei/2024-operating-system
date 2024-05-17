@@ -3,7 +3,6 @@
 // Mostly argument checking, since we don't trust
 // user code, and calls into file.c and fs.c.
 //
-#include <stdio.h>
 #include "types.h"
 #include "defs.h"
 #include "param.h"
@@ -620,7 +619,7 @@ int munmap(void* addr, int length)
 
     // If there are no mappings in the specified address range, then you just return 0
     if (!found) {
-        printf(1, "not found!\n");
+        panic("not found!")
         return 0;
     }
 
