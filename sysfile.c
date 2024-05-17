@@ -574,6 +574,7 @@ int mmap(struct file* f, int off, int len, int flags)
     p->mmap_regions[p->mmap_count].offset = off;
     p->mmap_regions[p->mmap_count].flags = flags;
     p->mmap_regions[p->mmap_count].valid = 1;
+    p->mmap_count++;
 
     // Log everything!
     for (int i = 0; i < p->mmap_count; i++) {
