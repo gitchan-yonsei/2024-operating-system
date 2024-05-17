@@ -71,6 +71,8 @@ exec(char *path, char **argv)
   if((sz = allocuvm(pgdir, sz, sz + PGSIZE)) == 0)
     goto bad;
 
+    myproc()->stack_lower_bound = sz;
+
   // 페이지 권한 제거 -> stack guard 설정
   clearpteu(pgdir, (char*)(sz - PGSIZE));
 
