@@ -7,6 +7,8 @@
 #include "x86.h"
 #include "traps.h"
 #include "spinlock.h"
+#include "vm.h"
+
 
 // Interrupt descriptor table (shared by all CPUs).
 struct gatedesc idt[256];
@@ -30,53 +32,6 @@ void
 idtinit(void)
 {
   lidt(idt, sizeof(idt));
-}
-
-pte_t *
-walkpgdir(pde_t *pgdir, const void *va, int alloc)
-{
-    pde_t *pde;
-    pte_t *pgtab;
-
-    pde = &pgdir[PDX(va)];
-    if(*pde & PTE_P){
-        pgtab = (pte_t*)P2V(PTE_ADDR(*pde));
-    } else {
-        if(!alloc || (pgtab = (pte_t*)kalloc()) == 0)
-            return 0;
-        // Make sure all those PTE_P bits are zero.
-        memset(pgtab, 0, PGSIZE);
-        // The permissions here are overly generous, but they can
-        // be further restricted by the permissions in the page table
-        // entries, if necessary.
-        *pde = V2P(pgtab) | PTE_P | PTE_W | PTE_U;
-    }
-    return &pgtab[PTX(va)];
-}
-
-// Create PTEs for virtual addresses starting at va that refer to
-// physical addresses starting at pa. va and size might not
-// be page-aligned.
-int
-mappages(pde_t *pgdir, void *va, uint size, uint pa, int perm)
-{
-    char *a, *last;
-    pte_t *pte;
-
-    a = (char*)PGROUNDDOWN((uint)va);
-    last = (char*)PGROUNDDOWN(((uint)va) + size - 1);
-    for(;;){
-        if((pte = walkpgdir(pgdir, a, 1)) == 0)
-            return -1;
-        if(*pte & PTE_P)
-            panic("remap");
-        *pte = pa | perm | PTE_P;
-        if(a == last)
-            break;
-        a += PGSIZE;
-        pa += PGSIZE;
-    }
-    return 0;
 }
 
 //PAGEBREAK: 41
