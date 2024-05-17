@@ -620,6 +620,7 @@ int munmap(void* addr, int length)
 
     // If there are no mappings in the specified address range, then you just return 0
     if (!found) {
+        cprintf(1, "not found!");
         return 0;
     }
 
