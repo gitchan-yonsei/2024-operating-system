@@ -99,6 +99,11 @@ trap(struct trapframe *tf)
           break;
       }
 
+      if (va >= (myproc()->stack_lower_bound - PGSIZE) && va < myproc()->stack_lower_bound) {
+          cprintf("스택가드 영역 침범");
+          myproc()->killed = 1;
+      }
+
       memset(mem, 0, PGSIZE);
 
       if (mappages(myproc()->pgdir, (char *) PGROUNDDOWN(va), PGSIZE, V2P(mem), PTE_W | PTE_U) < 0) {
