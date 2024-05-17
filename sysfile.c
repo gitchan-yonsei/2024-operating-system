@@ -602,6 +602,7 @@ int munmap(void* addr, int length)
 {
     struct proc *p = myproc();
     int found = 0;
+    struct mmap_region *region = 0;
 
     // addr should be a multiple of 4KB (if not, return -1)
     if (addr % PGSIZE != 0) {
@@ -612,12 +613,34 @@ int munmap(void* addr, int length)
     for (int i = 0; i < p->mmap_count; i++) {
         if (p->mmap_regions[i].addr == addr && p->mmap_regions[i].length == length) {
             found = 1;
+            region = &p->mmap_regions[i];
             break;
         }
     }
 
+    // If there are no mappings in the specified address range, then you just return 0
     if (!found) {
-        return MAP_FAILED;
+        return 0;
+    }
+
+    pte_t *pte;
+    char *mem;
+    uint a = addr;
+    struct file *f = region->file;
+
+    for (uint pa = a; pa < a + length; pa += PGSIZE){
+        if ((pte = walkpgdir(p->pgdir, (void *)pa, 0)) && (*pte & PTE_P)) {
+            mem = P2V(PTE_ADDR(*pte));
+
+            // Write the contents back to the file
+            ilock(f->ip);
+            writei(f->ip, mem, region->offset + (pa - a), PGSIZE);
+            iunlock(f->ip);
+
+            // Free the page
+            kfree(mem);
+            *pte = 0;
+        }
     }
 
     return 0;
