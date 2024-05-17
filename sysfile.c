@@ -92,6 +92,8 @@ sys_write(void)
   return filewrite(f, p, n);
 }
 
+int munmap(void* addr, int length);
+
 int
 sys_close(void)
 {
