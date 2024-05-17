@@ -20,6 +20,8 @@ int main(void)
 	printf(1, "stack_int: 0x%p\n", &stack_int);
 	printf(1, "heap_int: 0x%p\n", heap_int);
 
+    printf(1, "%d\n", frees())
+
 	// uncomment below to test 16KB stack 
 	ptr = (int*)((int)&stack_int - 0x3000);
 	*ptr = 0;
