@@ -68,8 +68,9 @@ exec(char *path, char **argv)
 
   // 메모리 할당: sz ~ sz + PGSIZE (1 페이지)
   // sz를 sz + PGSIZE로 업데이트
-  if((sz = allocuvm(pgdir, sz, sz + PGSIZE)) == 0)
-    goto bad;
+    if ((sz = allocuvm(pgdir, sz, sz + PGSIZE)) == 0) {
+        goto bad;
+    }
 
     myproc()->stack_lower_bound = sz;
 
