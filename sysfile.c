@@ -551,6 +551,14 @@ int mmap(struct file* f, int off, int len, int flags)
         return MAP_FAILED;
     }
 
+    // processes does not mmap the same file simultaneously
+    for (int i = 0; i < MAX_MMAP_AREAS; i++) {
+        struct mmap_region *r = p->mmap_regions[i];
+        if (!r->valid && r->file == f) {
+            return MAP_FAILED;
+        }
+    }
+
     for (i = 0; j < last; j += PGSIZE, i += PGSIZE) {
         if ((mem = kalloc()) == 0) {
             goto fail;
