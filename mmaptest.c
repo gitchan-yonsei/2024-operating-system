@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
 
     printf(1, "Data: %s\n", memory); // 메모리에서 데이터 읽기
 
-    printf(1, "=== unmap test ===");
+    printf(1, "=== unmap test ===\n");
     munmap(memory, 4096);
 
     printf(1, "frees (after munmap): %d\n", frees());
