@@ -19,7 +19,9 @@ int main(int argc, char *argv[]) {
     // 파일에 데이터를 쓰기 (예: 초기화)
     write(fd, "Hello, xv6!", 12);
 
-    printf(1, "frees (before mmap): %d\n", frees());
+    printf(1, "frees (init): %d\n", frees());
+
+    printf(1, "=== mmap test ===\n");
     // mmap() 호출
     memory = mmap(fd, 0, 4096, MAP_PROT_READ | MAP_PROT_WRITE);
 
@@ -31,7 +33,7 @@ int main(int argc, char *argv[]) {
 
     printf(1, "Data: %s\n", memory); // 메모리에서 데이터 읽기
 
-    printf(1, "=== unmap test ===\n");
+    printf(1, "=== munmap test ===\n");
     munmap(memory, 4096);
 
     printf(1, "frees (after munmap): %d\n", frees());
