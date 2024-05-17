@@ -90,7 +90,7 @@ found:
   p->state = EMBRYO;
   p->pid = nextpid++;
   p->sz = 0;
-  p->stack_base = KSTACKSIZE;
+  p->stack_lower_bound = KSTACKSIZE;
 
   release(&ptable.lock);
 

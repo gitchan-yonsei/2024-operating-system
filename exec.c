@@ -77,8 +77,10 @@ exec(char *path, char **argv)
     // stack guard에 접근할 수 없도록 설정함
   clearpteu(pgdir, (char*)(sz - PGSIZE));
 
-  if((sz = allocuvm(pgdir, sz + PGSIZE*(3), sz + PGSIZE*4)) == 0)
+  // only one stack page is allocated during exec()
+  if((sz = allocuvm(pgdir, sz + PGSIZE*(3), sz + PGSIZE*4)) == 0) {
 	goto bad;
+  }
   sp = sz;
 
   // Push argument strings, prepare rest of stack in ustack.
