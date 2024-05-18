@@ -8,6 +8,7 @@
 #include "traps.h"
 #include "spinlock.h"
 #include "vm.h"
+#include "file.h"
 
 
 // Interrupt descriptor table (shared by all CPUs).
