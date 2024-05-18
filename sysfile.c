@@ -553,17 +553,17 @@ int mmap(struct file* f, int off, int len, int flags)
     p->mmap_count++;
 
     // Log everything!
-    for (int i = 0; i < p->mmap_count; i++) {
-        cprintf("mmap_region[%d]: addr = %x, length = %d, file = %p, offset = %d, flags = %d, valid = %d\n",
-                i,
-                (uint)p->mmap_regions[i].addr,
-                p->mmap_regions[i].length,
-                p->mmap_regions[i].file,
-                p->mmap_regions[i].offset,
-                p->mmap_regions[i].flags,
-                p->mmap_regions[i].valid
-        );
-    }
+//    for (int i = 0; i < p->mmap_count; i++) {
+//        cprintf("mmap_region[%d]: addr = %x, length = %d, file = %p, offset = %d, flags = %d, valid = %d\n",
+//                i,
+//                (uint)p->mmap_regions[i].addr,
+//                p->mmap_regions[i].length,
+//                p->mmap_regions[i].file,
+//                p->mmap_regions[i].offset,
+//                p->mmap_regions[i].flags,
+//                p->mmap_regions[i].valid
+//        );
+//    }
 
     return (int) p->mmap_regions[p->mmap_count - 1].addr;
 
