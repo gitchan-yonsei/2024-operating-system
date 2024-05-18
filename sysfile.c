@@ -530,7 +530,7 @@ int mmap(struct file* f, int off, int len, int flags)
     for (i = 0; j < last; j += PGSIZE, i += PGSIZE) {
         pte_t *pte = walkpgdir(p->pgdir, (char *) a, 1);
         if (pte == 0) {
-            return (void *) MAP_FAILED;
+            return MAP_FAILED;
         }
         *pte = 0;
 
