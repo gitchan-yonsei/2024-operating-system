@@ -534,21 +534,21 @@ int mmap(struct file* f, int off, int len, int flags)
         }
         *pte = 0;
 
-
-        if ((mem = kalloc()) == 0) {
-            goto fail;
-        }
-        memset(mem, 0, PGSIZE);
-
-        // Read file content into allocated memory
-        ilock(f->ip);
-        readi(f->ip, mem, off + i, PGSIZE);
-        iunlock(f->ip);
-
-        if (mappages(p->pgdir, (char *) j, PGSIZE, V2P(mem), PTE_W | PTE_U | PTE_P) < 0) {
-            kfree(mem);
-            goto fail;
-        }
+// 즉시 loading하기 위해서는 코멘트를 풀어주세요!
+//        if ((mem = kalloc()) == 0) {
+//            goto fail;
+//        }
+//        memset(mem, 0, PGSIZE);
+//
+//        // Read file content into allocated memory
+//        ilock(f->ip);
+//        readi(f->ip, mem, off + i, PGSIZE);
+//        iunlock(f->ip);
+//
+//        if (mappages(p->pgdir, (char *) j, PGSIZE, V2P(mem), PTE_W | PTE_U | PTE_P) < 0) {
+//            kfree(mem);
+//            goto fail;
+//        }
     }
 
     p->mmap_regions[p->mmap_count].addr = (void *) a;
