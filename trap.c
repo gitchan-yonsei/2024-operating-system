@@ -86,6 +86,8 @@ trap(struct trapframe *tf)
   case T_PGFLT:
   {
       uint va = rcr2(); // faulted virtual address
+      struct proc *p = myproc();
+
       if (va >= KERNBASE) {
           cprintf("kernel space 침범");
           myproc()->killed = 1;
