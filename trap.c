@@ -8,6 +8,7 @@
 #include "traps.h"
 #include "spinlock.h"
 #include "vm.h"
+#include "file.h"
 
 
 // Interrupt descriptor table (shared by all CPUs).
@@ -94,15 +95,49 @@ trap(struct trapframe *tf)
           exit();
       }
 
-      char *mem = kalloc();
-      if (!mem) {
-          cprintf("메모리 할당 불가");
+      if (va >= (myproc()->stack_lower_bound - PGSIZE) && va < myproc()->stack_lower_bound) {
+          cprintf("스택가드 영역 침범");
           myproc()->killed = 1;
           exit();
       }
 
-      if (va >= (myproc()->stack_lower_bound - PGSIZE) && va < myproc()->stack_lower_bound) {
-          cprintf("스택가드 영역 침범");
+      // mmap 영역 확인
+      struct mmap_region *region = 0;
+      for (int i = 0; i < p->mmap_count; i++) {
+          if ((uint)p->mmap_regions[i].addr <= va &&
+              va < (uint)p->mmap_regions[i].addr + p->mmap_regions[i].length) {
+              region = &p->mmap_regions[i];
+              break;
+          }
+      }
+
+      if (region) {
+          char *mem = kalloc();
+          if (!mem) {
+              cprintf("메모리 할당 불가");
+              p->killed = 1;
+              break;
+          }
+          memset(mem, 0, PGSIZE);
+
+          ilock(region->file->ip);
+          readi(region->file->ip, mem, region->offset + (va - (uint)region->addr), PGSIZE);
+          iunlock(region->file->ip);
+
+          if (mappages(p->pgdir, (char *)PGROUNDDOWN(va), PGSIZE, V2P(mem), PTE_W | PTE_U) < 0) {
+              kfree(mem);
+              p->killed = 1;
+              break;
+          }
+
+          // TLB를 플러시합니다.
+          lcr3(V2P(p->pgdir));
+          return;
+      }
+
+      char *mem = kalloc();
+      if (!mem) {
+          cprintf("메모리 할당 불가");
           myproc()->killed = 1;
           exit();
       }

@@ -528,20 +528,27 @@ int mmap(struct file* f, int off, int len, int flags)
     }
 
     for (i = 0; j < last; j += PGSIZE, i += PGSIZE) {
-        if ((mem = kalloc()) == 0) {
-            goto fail;
+        pte_t *pte = walkpgdir(p->pgdir, (char *) a, 1);
+        if (pte == 0) {
+            return MAP_FAILED;
         }
-        memset(mem, 0, PGSIZE);
+        *pte = 0;
 
-        // Read file content into allocated memory
-        ilock(f->ip);
-        readi(f->ip, mem, off + i, PGSIZE);
-        iunlock(f->ip);
-
-        if (mappages(p->pgdir, (char *) j, PGSIZE, V2P(mem), PTE_W | PTE_U | PTE_P) < 0) {
-            kfree(mem);
-            goto fail;
-        }
+// 즉시 loading하기 위해서는 코멘트를 풀어주세요!
+//        if ((mem = kalloc()) == 0) {
+//            goto fail;
+//        }
+//        memset(mem, 0, PGSIZE);
+//
+//        // Read file content into allocated memory
+//        ilock(f->ip);
+//        readi(f->ip, mem, off + i, PGSIZE);
+//        iunlock(f->ip);
+//
+//        if (mappages(p->pgdir, (char *) j, PGSIZE, V2P(mem), PTE_W | PTE_U | PTE_P) < 0) {
+//            kfree(mem);
+//            goto fail;
+//        }
     }
 
     p->mmap_regions[p->mmap_count].addr = (void *) a;
@@ -567,7 +574,7 @@ int mmap(struct file* f, int off, int len, int flags)
 
     return (int) p->mmap_regions[p->mmap_count - 1].addr;
 
-    fail:
+//    fail:
     end_op();
     // Unmap and free any allocated pages
     for (uint pa = PGROUNDUP(p->sz); pa < a; pa += PGSIZE) {
