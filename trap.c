@@ -86,6 +86,8 @@ trap(struct trapframe *tf)
   case T_PGFLT:
   {
       uint va = rcr2(); // faulted virtual address
+      struct proc *p = myproc();
+
       if (va >= KERNBASE) {
           cprintf("kernel space 침범");
           myproc()->killed = 1;
@@ -103,6 +105,14 @@ trap(struct trapframe *tf)
           cprintf("스택가드 영역 침범");
           myproc()->killed = 1;
           exit();
+      }
+
+      if (va < p->stack_lower_bound && va >= p->stack_lower_bound - 4 * PGSIZE) {
+          if (p->stack_lower_bound - va > 4 * PGSIZE) {
+              cprintf("스택 크기 초과!");
+              p->killed = 1;
+              exit();
+          }
       }
 
       memset(mem, 0, PGSIZE);
