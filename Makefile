@@ -27,6 +27,10 @@ OBJS = \
 	uart.o\
 	vectors.o\
 	vm.o\
+	prio_block\
+	prio_nice\
+	prio_yield\
+	mlfq_long_test\
 
 # Cross-compiling (e.g., on Mac OS X)
 # TOOLPREFIX = i386-jos-elf
