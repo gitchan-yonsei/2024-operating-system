@@ -7,6 +7,8 @@
 #include "x86.h"
 #include "traps.h"
 #include "spinlock.h"
+#include "vm.h"
+
 
 // Interrupt descriptor table (shared by all CPUs).
 struct gatedesc idt[256];
@@ -81,7 +83,47 @@ trap(struct trapframe *tf)
             cpuid(), tf->cs, tf->eip);
     lapiceoi();
     break;
+  case T_PGFLT:
+  {
+      uint va = rcr2(); // faulted virtual address
+      struct proc *p = myproc();
 
+      if (va >= KERNBASE) {
+          cprintf("kernel space 침범");
+          myproc()->killed = 1;
+          exit();
+      }
+
+      char *mem = kalloc();
+      if (!mem) {
+          cprintf("메모리 할당 불가");
+          myproc()->killed = 1;
+          exit();
+      }
+
+      if (va >= (myproc()->stack_lower_bound - PGSIZE) && va < myproc()->stack_lower_bound) {
+          cprintf("스택가드 영역 침범");
+          myproc()->killed = 1;
+          exit();
+      }
+
+      if (va < p->stack_lower_bound && va >= p->stack_lower_bound - 4 * PGSIZE) {
+          if (p->stack_lower_bound - va > 4 * PGSIZE) {
+              cprintf("스택 크기 초과!");
+              p->killed = 1;
+              exit();
+          }
+      }
+
+      memset(mem, 0, PGSIZE);
+
+      if (mappages(myproc()->pgdir, (char *) PGROUNDDOWN(va), PGSIZE, V2P(mem), PTE_W | PTE_U) < 0) {
+          kfree(mem);
+          myproc()->killed = 1;
+          exit();
+      }
+  }
+          break;
   //PAGEBREAK: 13
   default:
     if(myproc() == 0 || (tf->cs&3) == 0){

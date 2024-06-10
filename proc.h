@@ -32,6 +32,22 @@ struct context {
   uint eip;
 };
 
+#define MAP_FAILED -1
+#define MAP_PROT_READ 0x00000001
+#define MAP_PROT_WRITE 0x00000002
+
+#define MAX_MMAP_AREAS 4
+#define MAX_SYSTEM_MMAP_AREAS 16
+
+struct mmap_region {
+    void *addr;
+    int length;
+    struct file *file;
+    int offset;
+    int flags;
+    int valid;
+};
+
 enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 
 // Per-process state
@@ -39,6 +55,7 @@ struct proc {
   uint sz;                     // Size of process memory (bytes)
   pde_t* pgdir;                // Page table
   char *kstack;                // Bottom of kernel stack for this process
+  uint stack_lower_bound;
   enum procstate state;        // Process state
   int pid;                     // Process ID
   struct proc *parent;         // Parent process
@@ -50,6 +67,8 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
+  struct mmap_region mmap_regions[4];
+  int mmap_count;
 };
 
 // Process memory is laid out contiguously, low addresses first:

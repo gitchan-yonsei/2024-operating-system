@@ -39,6 +39,7 @@ exec(char *path, char **argv)
     goto bad;
 
   // Load program into memory.
+  // Text + Data + Bss
   sz = 0;
   for(i=0, off=elf.phoff; i<elf.phnum; i++, off+=sizeof(ph)){
     if(readi(ip, (char*)&ph, off, sizeof(ph)) != sizeof(ph))
@@ -62,11 +63,21 @@ exec(char *path, char **argv)
 
   // Allocate two pages at the next page boundary.
   // Make the first inaccessible.  Use the second as the user stack.
+  // sz 값을 페이지 크기(PGSIZE)로 올림하여 페이지 경계에 맞춤
   sz = PGROUNDUP(sz);
-  if((sz = allocuvm(pgdir, sz, sz + PGSIZE)) == 0)
-    goto bad;
+
+  // 메모리 할당: sz ~ sz + PGSIZE (1 페이지)
+  // sz를 sz + PGSIZE로 업데이트
+    if ((sz = allocuvm(pgdir, sz, sz + PGSIZE)) == 0) {
+        goto bad;
+    }
+
+    myproc()->stack_lower_bound = sz;
+
+  // 페이지 권한 제거 -> stack guard 설정
   clearpteu(pgdir, (char*)(sz - PGSIZE));
 
+  // 스택 성장할 수 있는 최대 영역(16KB)으로부터 아래로 1 페이지 메모리 할당
   if((sz = allocuvm(pgdir, sz + PGSIZE*(3), sz + PGSIZE*4)) == 0)
 	goto bad;
   sp = sz;
